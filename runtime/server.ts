@@ -4,10 +4,10 @@ import { readFile, writeFile } from "fs/promises";
 import { Hono } from "hono";
 import client from "./dist/index.html";
 import { buildLSP, type LSP } from "./lsp.js";
-import { fileURLToPath } from "url";
 import { getVars } from "./getVars.ts";
 import { getValueDefinition as getValueSlice } from "./getDefition.ts";
 import type { Slice } from "./common.ts";
+import { pathToFileURL } from "url";
 
 const app = new Hono();
 
@@ -32,39 +32,19 @@ app.get("/font", async (c) => {
   return new Response(font, { headers: { "Content-Type": mime } });
 });
 app.post("/compile", async (c) => {
-  const variables = await c.req.text();
-  const tempFileName = crypto.randomUUID();
-  const tempFile = WORKDIR + tempFileName;
+  const params = new URL(c.req.url).searchParams;
+  const variables: Record<string, any> = await c.req.json();
+  const clientId = params.get("client") || crypto.randomUUID();
 
-  const sourcePath =
-    WORKDIR + (new URL(c.req.url).searchParams.get("root") || "main.typ");
-  const source = await readFile(sourcePath, { encoding: "utf8" });
+  const sourcePath = WORKDIR + (params.get("root") || "main.typ");
+  const sourceUri = pathToFileURL(sourcePath);
 
-  const replaced = variables ? source.replace("// ui", variables) : source;
+  await compile(sourceUri.toString(), variables, clientId);
 
-  await writeFile(`${tempFile}.typ`, system + replaced);
-
-  const compilerResponse = await sh(
-    `typst compile ${WORKDIR + "defaults.typ"} --font-path=${WORKDIR} --input root="${tempFileName}.typ" ${tempFile}-page{0p}.svg`,
-  )
-    .catch(() => sh(`typst compile ${tempFile}.typ ${tempFile}-page{0p}.svg`))
-    .catch(
-      (e) =>
-        "<pre>" +
-        [
-          `exit code ${e.exitCode}`,
-          e.stdout.toString(),
-          e.stderr.toString(),
-        ].join("<br>") +
-        "</pre>",
-    );
-  await sh(`ls ${tempFile}-page* | sort | xargs cat > ${tempFile}.svg`);
-
-  const output = await readFile(`${tempFile}.svg`, { encoding: "utf8" });
-  setTimeout(async () => {
-    await sh(`rm ${tempFile}*`);
-  }, 1000);
-  return new Response(compilerResponse || output);
+  const output = await readFile(`${WORKDIR + clientId}.svg`, {
+    encoding: "utf8",
+  });
+  return new Response(output);
 });
 
 type FieldInfo = {
@@ -77,16 +57,6 @@ type FieldInfo = {
   type: "number" | "string" | "boolean";
   options?: string[];
 };
-
-async function openFile(fileUri: string) {
-  const clientId = crypto.randomUUID();
-  const lsp = await buildLSP(WORKDIR, fileUri);
-
-  return {
-    lsp,
-    clientId,
-  };
-}
 
 async function getFields(lsp: LSP) {
   const { fileUri, initialFileBody } = lsp;
@@ -166,16 +136,23 @@ async function applyFields({
   return replaced;
 }
 
-explore();
-async function explore() {
-  const fileUri = `file://${WORKDIR}root.typ`;
-  const { lsp, clientId } = await openFile(fileUri);
+async function compile(
+  fileUri: string,
+  variables: Record<string, any>,
+  clientId: string,
+) {
+  const lsp = await buildLSP(WORKDIR, fileUri);
 
   const fields = await getFields(lsp);
 
-  // Let's say the user changed something:
-  fields["number"].value = "1";
-  fields["select-value"].value = "1";
+  console.log(Object.entries(variables));
+  Object.entries(variables).forEach(([key, value]) => {
+    if (!fields[key]) return;
+
+    fields[key].value = `${value}`;
+  });
+
+  console.log({ fields });
 
   const source = await applyFields({ lsp, fields, clientId });
   console.log(source);

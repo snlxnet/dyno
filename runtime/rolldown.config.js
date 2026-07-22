@@ -14,7 +14,7 @@ function htmlAsString() {
 
 export default {
   input: "server.ts",
-  output: { file: "server.js", minify: true },
+  output: { file: "server.js", minify: false },
   platform: "node",
   plugins: [htmlAsString()],
 };
