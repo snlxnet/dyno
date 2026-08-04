@@ -4,7 +4,6 @@ import { readFile, writeFile } from "fs/promises";
 import { Hono } from "hono";
 import client from "./dist/index.html";
 import { buildLSP, type LSP } from "./lsp.js";
-import { fileURLToPath } from "url";
 import { getVars } from "./getVars.ts";
 import { getValueDefinition as getValueSlice } from "./getDefition.ts";
 import type { Slice } from "./common.ts";
@@ -12,7 +11,6 @@ import type { Slice } from "./common.ts";
 const app = new Hono();
 
 const WORKDIR = "/Users/alex/repos/dyno/runtime/"; // (process.env.DYNO_DIR || "./") + "/";
-const LIB_URI = `file://${WORKDIR}lib.typ`;
 const PORT = +(process.env.DYNO_PORT || 3000);
 
 const system = `#let window-width = 1280

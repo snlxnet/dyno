@@ -14,3 +14,15 @@ export type Position = {
 };
 
 export type Slice = [number, number];
+
+export type FieldInfo = {
+  valueSlice: Slice;
+  value: string;
+
+  argsSlice: Slice;
+  args: string;
+
+  type: "number" | "string" | "boolean";
+  options?: string[];
+};
+
