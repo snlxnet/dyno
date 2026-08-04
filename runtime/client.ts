@@ -25,22 +25,7 @@ const typ = createDiv("typ");
 const err = createDiv("err");
 const ui = createDiv("ui");
 const cm = createDiv("cm");
-
-const clientId = getClientId();
 let mutexes: string[][] = []; // mutually exclusive values
-
-function getClientId() {
-  const saved = localStorage.getItem("clientId");
-
-  if (saved) {
-    return saved;
-  }
-
-  const response =
-    prompt("What's your name") || "client" + Math.ceil(Math.random() * 100);
-  localStorage.setItem("clientId", response.replace(/\s/g, ""));
-  return response;
-}
 
 function createDiv(id: string) {
   const element = document.createElement("div");
@@ -149,7 +134,7 @@ async function replaceUi() {
   requested.map(updateUiElement);
 }
 
-function getUiValues(): object {
+function getUiValues() {
   const pairs = Array.from(ui.children as Iterable<HTMLInputElement>)
     .map(getInputValue)
     .filter((element) => element.length !== 0);
@@ -161,13 +146,11 @@ function getUiValues(): object {
     ["focus", `"${document.activeElement?.id || ""}"`],
   ];
 
-  const json =
-    "{\n" +
-    [...pairs, ...system].map(([k, v]) => `  "${k}": ${v}`).join(",\n") +
-    "\n}";
-  console.log({ json });
-
-  return JSON.parse(json);
+  return (
+    "#{\n" +
+    [...pairs, ...system].map(([k, v]) => `  ${k} = ${v}`).join("\n") +
+    "\n}"
+  );
 }
 
 function getInputValue(element: HTMLInputElement) {
@@ -291,10 +274,10 @@ function createInput({ kind, variable, options, defaultVal }: InputProps) {
   return element;
 }
 
-async function replaceTyp(body: object) {
-  const response = await fetch(`/compile?root=${root}&client=${clientId}`, {
+async function replaceTyp(body: string) {
+  const response = await fetch(`/compile?root=${root}`, {
     method: "POST",
-    body: JSON.stringify(body),
+    body: body || "// dyno: no input provided",
   });
   const text = await response.text();
 
