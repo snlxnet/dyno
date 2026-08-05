@@ -45,10 +45,13 @@ async function getFields(lsp: LSP) {
   return Object.fromEntries(fields);
 }
 
-explore();
+failSafe()
+  .then(console.log)
+  .then(() => process.exit(0));
+
 async function explore() {
   const fileUri = `file://${WORKDIR}root.typ`;
-  const lsp = await buildLSP(WORKDIR, fileUri)
+  const lsp = await buildLSP(WORKDIR, fileUri);
 
   const fields = await getFields(lsp);
 
@@ -57,8 +60,22 @@ async function explore() {
   fields["select-value"].value = "1";
 
   const source = applyFields({ source: lsp.initialFileBody, fields });
-  console.log(source);
-
-  lsp.exit()
+  lsp.exit();
+  return source;
 }
 
+async function failSafe() {
+  let result: string;
+
+  return new Promise((resolve) => {
+    explore().then((val) => {
+      result = val;
+      resolve(result);
+    });
+    setTimeout(() => {
+      if (result === undefined) {
+        failSafe().then(resolve);
+      }
+    }, 100);
+  });
+}
