@@ -3,19 +3,37 @@ import { getVars } from "./getVars.ts";
 import { getValueDefinition as getValueSlice } from "./getDefition.ts";
 import type { FieldInfo } from "./common.ts";
 import { applyFields } from "./apply.ts";
+import { pathToFileURL } from "url";
+import { exec } from "child_process";
+import { resolve } from "path";
 
-const WORKDIR = "/Users/alex/repos/dyno/runtime/";
-const LIB_URI = `file://${WORKDIR}lib.typ`;
+const DYNO_VERSION = "0.1.0"
+
+async function sh(command: string): Promise<string> {
+  console.log("$ " + command);
+  return new Promise((resolve, reject) => {
+    exec(command, (exitCode, stdout, stderr) => {
+      if (exitCode) {
+        reject({ exitCode, stdout, stderr });
+        return;
+      }
+      resolve(stdout);
+    });
+  });
+}
 
 async function getFields(lsp: LSP) {
   const { fileUri, initialFileBody } = lsp;
 
+  const {packages} = await sh("typst info --format=json").then(JSON.parse)
+  const libUri = pathToFileURL(`${packages["package-cache-path"]}/preview/dyno/${DYNO_VERSION}/lib.typ`)
+
   const vars = await getVars({
-    fileUri,
     fileBody: initialFileBody,
-    libUri: LIB_URI,
+    libUri,
     lsp,
   });
+  console.log(vars)
 
   const fields: [string, FieldInfo][] = [];
 
@@ -50,8 +68,9 @@ failSafe()
   .then(() => process.exit(0));
 
 async function explore() {
-  const fileUri = `file://${WORKDIR}root.typ`;
-  const lsp = await buildLSP(WORKDIR, fileUri);
+  const WORKDIR = resolve(import.meta.dirname, "..", "example");
+  const lsp = await buildLSP(WORKDIR, "demo.typ");
+  lsp.subscribe((msg) => console.log(JSON.stringify(msg, null, 4)))
 
   const fields = await getFields(lsp);
 

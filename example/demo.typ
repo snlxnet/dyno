@@ -1,4 +1,4 @@
-#import "lib.typ": input as inp, set-theme
+#import "@preview/dyno:0.1.0": input, set-theme
 #set-theme((value, input) => {
   set box(stroke: blue, inset: 2mm, radius: 1mm)
   set text(fill: blue)
@@ -18,8 +18,8 @@
 #let select-options = ("zero", "one", "two")
 
 Render input:
-- #inp(number)
-- #inp(text)
-- #inp(checkbox)
-- #inp(toggle, on: [Enabled], off: [Disabled])
-- #inp(select-value, options: select-options)
+- #input(number)
+- #input(text)
+- #input(checkbox)
+- #input(toggle, on: [Enabled], off: [Disabled])
+- #input(select-value, options: select-options)

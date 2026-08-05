@@ -5,19 +5,17 @@ const INPUT_FUNCTION_LINE = 3;
 const INPUT_FUNCTION_CHARACTER = 6;
 
 export async function getVars({
-  fileUri,
   fileBody,
   libUri,
   lsp,
 }: {
-  fileUri: string;
   fileBody: string;
-  libUri: string;
+  libUri: URL;
   lsp: LSP;
 }) {
   lsp.request("textDocument/references", {
-    context: { includeDeclaration: false },
-    textDocument: { uri: libUri },
+    context: { includeDeclaration: true },
+    textDocument: { uri: libUri.toString() },
     position: {
       line: INPUT_FUNCTION_LINE,
       character: INPUT_FUNCTION_CHARACTER,
@@ -36,7 +34,7 @@ export async function getVars({
         }
 
         const references = (message.result as Location[])
-          .filter((ref) => ref.uri === fileUri)
+          .filter((ref) => ref.uri === lsp.fileUri.toString())
           .map((ref) => ref.range);
 
         const result = processReferences(references, fileBody);

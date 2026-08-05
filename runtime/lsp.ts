@@ -1,18 +1,21 @@
 import { spawn } from "child_process";
 import { readFile } from "fs/promises";
-import { fileURLToPath } from "url";
+import { resolve } from "path";
+import { fileURLToPath, pathToFileURL } from "url";
 
 export type LSP = {
   request<T extends object | any[]>(method: string, params?: T): Promise<void>;
   notify<T extends object | any[]>(method: string, params?: T): void;
   subscribe(handler: (message: any) => any): void;
   exit(): void;
-  fileUri: string;
+  fileUri: URL;
   filePath: string;
   initialFileBody: string;
 };
 
-export async function buildLSP(cwd: string, fileUri: string): Promise<LSP> {
+export async function buildLSP(cwd: string, filename: string): Promise<LSP> {
+  const fileUri = pathToFileURL(resolve(cwd, filename))
+
   const lspServer = spawn("tinymist", ["lsp", "--ignore-system-fonts"], {
     env: { ...process.env, TYPST_FONT_PATHS: cwd, cwd },
   });
@@ -110,7 +113,7 @@ export async function buildLSP(cwd: string, fileUri: string): Promise<LSP> {
       textDocument: {
         languageId: "typst",
         text: fileBody,
-        uri: fileUri,
+        uri: fileUri.toString(),
         version: 1,
       },
     });

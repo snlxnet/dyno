@@ -12,7 +12,7 @@ export async function getValueDefinition({
   lsp,
   target,
 }: {
-  fileUri: string;
+  fileUri: URL;
   fileBody: string;
   lsp: LSP;
   target: Position;
@@ -30,7 +30,7 @@ export async function getValueDefinition({
 
       const definition = (message.result as LocationLink[])[0];
 
-      if (definition.targetUri !== fileUri) {
+      if (definition.targetUri !== fileUri.toString()) {
         return;
       }
 
