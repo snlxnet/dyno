@@ -25,4 +25,3 @@ export type FieldInfo = {
   type: "number" | "string" | "boolean";
   options?: string[];
 };
-

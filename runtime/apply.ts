@@ -19,10 +19,7 @@ export function applyFields({
     return [field.valueSlice, " " + field.value];
   });
 
-  const replaced = applySlices(source, [
-    ...replaceArgs,
-    ...replaceValues,
-  ]);
+  const replaced = applySlices(source, [...replaceArgs, ...replaceValues]);
 
   return replaced;
 }
