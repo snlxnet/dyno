@@ -19,7 +19,9 @@
 
 Render input:
 - #input(number)
-- #input(text)
+- #{input(text)}
 - #input(checkbox)
-- #input(toggle, on: [Enabled], off: [Disabled])
+- #input(on: [Enabled], toggle, off: [D,isabled])
 - #input(select-value, options: select-options)
+
+Fake call: input(number)
