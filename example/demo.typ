@@ -25,3 +25,6 @@ Render input:
 - #input(select-value, options: select-options)
 
 Fake call: input(number)
+
+#let number = 0
+Other more different number: #input(number)
