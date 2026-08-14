@@ -2,6 +2,11 @@
 
 Proof of concept kind-of done: replacing the values with tinymist.
 
+I'll put the thought here cuz I've already forgot why I didn't merge this.
+If the package is `@preview` instead of a local one,
+Tinymist's go to references breaks down and only shows the definition.
+So now I'm rewriting it in RegEx.
+
 ## Usage
 
 ```typst
