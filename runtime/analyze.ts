@@ -70,12 +70,8 @@ async function getFields(lsp: LSP) {
       target: range,
     }).catch(() => undefined);
 
-    if (variable == "number") {
-      console.log({slice, valueSlice})
-    }
-
     if (!valueSlice) {
-      console.log(`"${variable}" is not a variable`)
+      // not a variable, just a string that matched the RegEx
       continue
     }
 
@@ -104,11 +100,8 @@ failSafe()
 async function explore() {
   const WORKDIR = resolve(import.meta.dirname, "..", "example");
   const lsp = await buildLSP(WORKDIR, "demo.typ");
-  // lsp.subscribe((msg) => console.log(JSON.stringify(msg, null, 4)))
 
   const fields = await getFields(lsp);
-
-  fields.forEach((v) => console.log(v))
 
   // Let's say the user changed something:
   fields.find(([key, _value]) => key == "number")![1].value = "1";
