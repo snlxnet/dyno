@@ -7,6 +7,7 @@ export type LSP = {
   request<T extends object | any[]>(method: string, params?: T): Promise<void>;
   notify<T extends object | any[]>(method: string, params?: T): void;
   subscribe(handler: (message: any) => any): void;
+  unsubscribe(handler: (message: any) => any): void;
   exit(): void;
   fileUri: URL;
   filePath: string;
@@ -126,6 +127,9 @@ export async function buildLSP(cwd: string, filename: string): Promise<LSP> {
     notify,
     subscribe(handler) {
       subscribers.add(handler);
+    },
+    unsubscribe(handler) {
+      subscribers.delete(handler)
     },
     fileUri,
     filePath,

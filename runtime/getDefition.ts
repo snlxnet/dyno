@@ -21,21 +21,28 @@ export async function getValueDefinition({
     textDocument: { uri: fileUri },
     position: target,
   });
+  return new Promise((resolve: (where: Slice) => void, reject: () => void) => {
+    function handler(message: any) {
+      if (!message.result) {
+        reject()
+      }
 
-  return new Promise((resolve: (where: Slice) => any) => {
-    lsp.subscribe((message) => {
       if (!isDefinition(message)) {
         return;
       }
 
       const definition = (message.result as LocationLink[])[0];
 
-      if (definition.targetUri !== fileUri.toString()) {
+      if (!definition || definition.targetUri !== fileUri.toString()) {
         return;
       }
 
+      lsp.unsubscribe(handler)
+
       resolve(getValue(definition.targetRange, fileBody));
-    });
+    }
+
+    lsp.subscribe(handler);
   });
 }
 

@@ -1,4 +1,4 @@
-#import "@preview/dyno:0.1.0": input, set-theme
+#import "lib.typ": input, set-theme
 #set-theme((value, input) => {
   set box(stroke: blue, inset: 2mm, radius: 1mm)
   set text(fill: blue)
