@@ -1,7 +1,7 @@
 import { buildLSP, type LSP } from "./lsp.ts";
 import { getVars } from "./getVars.ts";
 import { getValueDefinition as getValueSlice } from "./getDefition.ts";
-import type { FieldInfo, Slice } from "./common.ts";
+import type { FieldInfo, Position, Slice } from "./common.ts";
 import { applyFields } from "./apply.ts";
 import { pathToFileURL } from "url";
 import { exec } from "child_process";
@@ -55,6 +55,35 @@ function stupidlyGetVars(file: string) {
   })
 }
 
+async function getOptions(fileUri: URL, lsp: LSP, variable: string, target: Position, lines: string[]) {
+  lsp.request("textDocument/references", {
+    textDocument: { uri: fileUri },
+    position: target,
+    context: {
+      includeDeclaration: false,
+    }
+  });
+  return new Promise((resolve: (val: string[] | null) => void) => {
+    async function handler(message: any) {
+      if (!message.result || !Array.isArray(message.result) || !message.result.at(0)?.range) {
+        resolve(null)
+        return
+      }
+
+      const options: string[] = message.result.flatMap((entry: any) => 
+        lines[entry.range.end.line].matchAll(/\s*==(.+?)(?:and|or|not|[\[{])/gm).map(([_match, value]) => value.trim()).toArray()
+      )
+      // TODO if it doesn't have quotes, go get the variable
+      const unique = new Set(options)
+      lsp.unsubscribe(handler)
+
+      resolve(Array.from(unique));
+    }
+
+    lsp.subscribe(handler);
+  });
+}
+
 async function getFields(lsp: LSP) {
   const { fileUri, initialFileBody } = lsp;
 
@@ -70,6 +99,11 @@ async function getFields(lsp: LSP) {
       target: range,
     }).catch(() => undefined);
 
+    const opts = await getOptions(fileUri, lsp, variable, range, initialFileBody.split("\n"))
+    if (opts) {
+      console.log(variable, opts)
+    }
+
     if (!valueSlice) {
       // not a variable, just a string that matched the RegEx
       continue
@@ -83,6 +117,7 @@ async function getFields(lsp: LSP) {
       {
         valueSlice,
         value,
+        uuid: crypto.randomUUID(),
         argsSlice: slice,
         args,
         type: typeof JSON.parse(value) as "number" | "string" | "boolean",
@@ -102,10 +137,11 @@ async function explore() {
   const lsp = await buildLSP(WORKDIR, "demo.typ");
 
   const fields = await getFields(lsp);
+  // console.log(JSON.stringify(fields, null, 4))
 
   // Let's say the user changed something:
   fields.find(([key, _value]) => key == "number")![1].value = "1";
-  fields.find(([key, _value]) => key == "select-value")![1].value = "1";
+  // fields.find(([key, _value]) => key == "select-value")![1].value = "1";
 
   const source = applyFields({ source: lsp.initialFileBody, fields });
   lsp.exit();

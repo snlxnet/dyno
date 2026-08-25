@@ -7,8 +7,8 @@ export function applyFields({
   source: string;
   fields: [string, FieldInfo][];
 }) {
-  const replaceArgs = fields.map(([name, field]): [Slice, string] => {
-    const label = `name: "${name}", `;
+  const replaceArgs = fields.map(([_name, field]): [Slice, string] => {
+    const label = `uuid: "${field.uuid}", `;
     const args = label + field.args;
 
     return [field.argsSlice, args];
@@ -22,6 +22,7 @@ export function applyFields({
   return replaced;
 }
 
+// todo apply in reverse
 function applySlices(source: string, sliceValuesUnsorted: [Slice, string][]) {
   const sliceValues = sliceValuesUnsorted.toSorted((a, b) => a[0][0] - b[0][0]);
   const chars = Array.from(source);

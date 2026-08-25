@@ -3,22 +3,17 @@
 
 #let input(
   body,
-  name: "",
-  options: (),
+  uuid: "input", // no uuids for the normal compiler
   on: [checkbox-on],
   off: [checkbox-off],
   ..args
 ) = context (theme.get())(body, {
   let bodyType = type(body)
 
-  let val = if options.len() > 0 {
-    options.at(body)
-  } else if bodyType == bool {
+  let val = if bodyType == bool {
     if body { on } else { off }
   } else [#body]
 
-  let props = ()
-
-  [#box(val)#label(json.encode(props))]
+  [#box(val)#label(uuid)]
 })
 

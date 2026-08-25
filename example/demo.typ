@@ -1,4 +1,4 @@
-#import "lib.typ": input, set-theme
+#import "@preview/dyno:0.1.0": input, set-theme
 #set-theme((value, input) => {
   set box(stroke: blue, inset: 2mm, radius: 1mm)
   set text(fill: blue)
@@ -14,15 +14,18 @@
 #let text = "string"
 #let checkbox = false
 #let toggle = false
-#let select-value = 0
-#let select-options = ("zero", "one", "two")
+
+#let option-b = "option b"
+#let select = "option a"
 
 Render input:
 - #input(number)
 - #{input(text)}
 - #input(checkbox)
 - #input(on: [Enabled], toggle, off: [D,isabled])
-- #input(select-value, options: select-options)
+- #input(select)
+
+Selected: #if select     == "option a" [opt a] else if select== option-b [opt b]
 
 Fake call: input(number)
 
