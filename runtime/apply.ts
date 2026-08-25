@@ -5,17 +5,15 @@ export function applyFields({
   fields,
 }: {
   source: string;
-  fields: Record<string, FieldInfo>;
+  fields: [string, FieldInfo][];
 }) {
-  const fieldArray = Object.entries(fields);
-
-  const replaceArgs = fieldArray.map(([name, field]): [Slice, string] => {
+  const replaceArgs = fields.map(([name, field]): [Slice, string] => {
     const label = `name: "${name}", `;
     const args = label + field.args;
 
     return [field.argsSlice, args];
   });
-  const replaceValues = fieldArray.map(([_name, field]): [Slice, string] => {
+  const replaceValues = fields.map(([_name, field]): [Slice, string] => {
     return [field.valueSlice, " " + field.value];
   });
 

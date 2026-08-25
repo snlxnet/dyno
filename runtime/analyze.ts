@@ -94,7 +94,7 @@ async function getFields(lsp: LSP) {
     ]);
   }
 
-  return Object.fromEntries(fields);
+  return fields;
 }
 
 failSafe()
@@ -108,11 +108,11 @@ async function explore() {
 
   const fields = await getFields(lsp);
 
-  Object.entries(fields).forEach((v) => console.log(v))
+  fields.forEach((v) => console.log(v))
 
   // Let's say the user changed something:
-  fields["number"].value = "1";
-  fields["select-value"].value = "1";
+  fields.find(([key, _value]) => key == "number")![1].value = "1";
+  fields.find(([key, _value]) => key == "select-value")![1].value = "1";
 
   const source = applyFields({ source: lsp.initialFileBody, fields });
   lsp.exit();
