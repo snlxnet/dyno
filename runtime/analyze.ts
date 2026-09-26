@@ -37,7 +37,10 @@ function stupidlyGetVars(file: string) {
   })
 }
 
-async function getOptions(fileUri: URL, lsp: LSP, variable: string, target: Position, lines: string[]) {
+async function getOptions(fileUri: URL, fileBody: string, lsp: LSP, variable: string, target: Position) {
+  const lines = fileBody.split("\n")
+  const SCARY_REGEX = /\s*==(.+?)(?:and|or|not|[\[{])/gm
+
   lsp.request("textDocument/references", {
     textDocument: { uri: fileUri },
     position: target,
@@ -45,21 +48,38 @@ async function getOptions(fileUri: URL, lsp: LSP, variable: string, target: Posi
       includeDeclaration: false,
     }
   });
+
   return new Promise((resolve: (val: string[] | null) => void) => {
     async function handler(message: any) {
+      lsp.unsubscribe(handler)
+
       if (!message.result || !Array.isArray(message.result) || !message.result.at(0)?.range) {
         resolve(null)
         return
       }
 
-      const options: string[] = message.result.flatMap((entry: any) => 
-        lines[entry.range.end.line].matchAll(/\s*==(.+?)(?:and|or|not|[\[{])/gm).map(([_match, value]) => value.trim()).toArray()
-      )
-      // TODO if it doesn't have quotes, go get the variable
-      const unique = new Set(options)
-      lsp.unsubscribe(handler)
+      const options: {value: string, index: number, line: number}[] = message.result.flatMap((entry: any) => {
+        const line: number = entry.range.end.line
 
-      resolve(Array.from(unique));
+        return lines[line].matchAll(SCARY_REGEX).map((match) => ({value: match[1].trim(), index: match.index, line})).toArray()
+      })
+      
+      const promises = options.map(async ({value, index, line}) => {
+        if (value.at(0) === '"' && value.at(-1) === '"') return value.slice(1, -1)
+
+        const parts = lines[line].slice(index).split(/=|\s/)
+        const variableStart = parts.findIndex(Boolean) + index
+        const slice = await getValueSlice({fileUri, fileBody,lsp, target: {line, character: variableStart}})
+        const result = fileBody.slice(...slice).trim()
+
+        if (result.at(0) === '"' && result.at(-1) === '"') return result.slice(1, -1)
+
+        console.error(`Could not process option '${value}' of variable '${variable}', got: '${result}'`)
+        return ""
+      })
+
+      const unique = Array.from(new Set(await Promise.all(promises))).filter(Boolean)
+      resolve(unique);
     }
 
     lsp.subscribe(handler);
@@ -81,7 +101,7 @@ async function getFields(lsp: LSP) {
       target: range,
     }).catch(() => undefined);
 
-    const opts = await getOptions(fileUri, lsp, variable, range, initialFileBody.split("\n"))
+    const opts = await getOptions(fileUri, initialFileBody, lsp, variable, range)
     if (opts) {
       console.log(variable, opts)
     }
