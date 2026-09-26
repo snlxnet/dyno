@@ -20,11 +20,24 @@ async function initLsp() {
       }
       console.log({ notification, source: "Tinymist" });
     },
-    resolveFn: (resolver) => console.log({ resolver, source: "Tinymist" }),
+    resolveFn: ({namespace, name, version}) => {
+      if (namespace !== "preview") {
+        console.error("dyno: can't load package " + name)
+        return
+      }
+
+      if (name === "dyno") {
+        console.error("TODO")
+        return
+      }
+
+      console.log({name})
+      return '/pkg/' + name
+    },
   });
-  tm.on_request("initialize", {
+  const init = tm.on_request("initialize", {
     processId: null,
-    rootUri: "file:///main.typ",
+    rootUri: "file:///project/main.typ",
     capabilities: {
       workspace: {
         fileOperations: { didCreate: true },
@@ -40,6 +53,7 @@ async function initLsp() {
       },
     },
   });
+  console.log({init})
   tm.on_notification("initialized", {});
   return tm
 }
@@ -50,8 +64,36 @@ async function main() {
   tinymist.on_notification("textDocument/didOpen", {
     textDocument: {
       languageId: "typst",
-      text: "= Hello #worl",
-      uri: "file:///main.typ",
+      text: `[package]
+name = "yap"
+version = "0.1.0"
+keywords = ["video", "presentation", "html"]
+categories = ["components", "visualization", "integration"]
+entrypoint = "lib.typ"
+authors = ["<@snlxnet>"]
+homepage = "https://yap.snlx.net"
+repository = "https://github.com/snlxnet/yap"
+license = "MIT"
+description = "Add videos & speaker notes to paged documents."`,
+      uri: "file:///pkg/yap/typst.toml",
+      version: 1,
+    }
+  })
+
+  tinymist.on_notification("textDocument/didOpen", {
+    textDocument: {
+      languageId: "typst",
+      text: `#let works = true`,
+      uri: "file:///pkg/yap/lib.typ",
+      version: 1,
+    }
+  })
+
+  tinymist.on_notification("textDocument/didOpen", {
+    textDocument: {
+      languageId: "typst",
+      text: `#import "@preview/idk:0.1.0": works\n#works`,
+      uri: "file:///project/main.typ",
       version: 1,
     }
   })
