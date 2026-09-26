@@ -139,11 +139,9 @@ async function explore() {
   const lsp = await buildLSP(WORKDIR, "demo.typ");
 
   const fields = await getFields(lsp);
-  // console.log(JSON.stringify(fields, null, 4))
 
   // Let's say the user changed something:
   fields.find(([key, _value]) => key == "number")![1].value = "1";
-  // fields.find(([key, _value]) => key == "select-value")![1].value = "1";
 
   const source = applyFields({ source: lsp.initialFileBody, fields });
   lsp.exit();
