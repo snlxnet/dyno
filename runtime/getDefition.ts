@@ -25,6 +25,7 @@ export async function getValueSlice({
     function handler(message: any) {
       if (!message.result) {
         reject()
+        return
       }
 
       if (!isDefinition(message)) {
@@ -85,6 +86,8 @@ function getValue(variable: Range, fileBody: string): Slice {
       endIdx = idx + 1;
     }
   });
+
+  console.log(variable.start)
 
   return [firstEqualSign + 1, endIdx];
 }

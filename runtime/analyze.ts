@@ -9,6 +9,7 @@ function stupidlyGetVars(file: string) {
     .matchAll(/input\((.+)\)/g)
     .toArray()
     .map((parts) => ({ args: parts[1], matchStart: parts.index + 6 }));
+
   const potentials = inputs.flatMap(({ args, matchStart }) => {
     return args
       .split(",")
@@ -72,7 +73,7 @@ async function getOptions(
     },
   });
 
-  return new Promise((resolve: (val: string[] | null) => void) => {
+  return new Promise((resolve: (val: string[]) => void) => {
     async function handler(message: any) {
       lsp.unsubscribe(handler);
 
@@ -81,7 +82,7 @@ async function getOptions(
         !Array.isArray(message.result) ||
         !message.result.at(0)?.range
       ) {
-        resolve(null);
+        resolve([]);
         return;
       }
 
@@ -136,6 +137,7 @@ async function getFields(lsp: LSP) {
   const { fileUri, initialFileBody } = lsp;
 
   const vars = stupidlyGetVars(initialFileBody);
+  // TODO check if they're real by gd'ing on them
 
   const fields: [string, FieldInfo][] = [];
 
@@ -145,7 +147,13 @@ async function getFields(lsp: LSP) {
       fileBody: initialFileBody,
       lsp,
       target: range,
-    }).catch(() => undefined);
+    }).catch((e) => {
+      console.log("rej", e)
+      undefined
+    });
+    if (!valueSlice) {
+      console.log("not a variable", range, initialFileBody.split("\n")[range.line][range.character])
+    }
 
     const opts = await getOptions(
       fileUri,
@@ -154,7 +162,7 @@ async function getFields(lsp: LSP) {
       variable,
       range,
     );
-    if (opts) {
+    if (opts.length) {
       console.log(variable, opts);
     }
 
