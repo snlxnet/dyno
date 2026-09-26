@@ -1,4 +1,4 @@
-const tinymist = initLsp()
+main()
 
 async function initLsp() {
   let mist;
@@ -14,6 +14,9 @@ async function initLsp() {
       if (notification.method === "tmLog") {
         console.log(notification.params.data);
         return;
+      } else if (notification.method === "textDocument/publishDiagnostics") {
+        console.warn(...notification.params.diagnostics)
+        return
       }
       console.log({ notification, source: "Tinymist" });
     },
@@ -39,4 +42,17 @@ async function initLsp() {
   });
   tm.on_notification("initialized", {});
   return tm
+}
+
+async function main() {
+  const tinymist = await initLsp()
+
+  tinymist.on_notification("textDocument/didOpen", {
+    textDocument: {
+      languageId: "typst",
+      text: "= Hello #worl",
+      uri: "file:///main.typ",
+      version: 1,
+    }
+  })
 }
