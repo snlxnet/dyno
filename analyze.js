@@ -58,43 +58,58 @@ async function initLsp() {
   return tm
 }
 
+/* from https://github.com/Myriad-Dreamin/tinymist/blob/main/editors/vscode/src/util.ts#L44 */
+const bytesBase64Encode = (bytes) =>
+  btoa(Array.from(bytes, (c) => String.fromCharCode(c)).join(""));
+
 async function main() {
   const tinymist = await initLsp()
 
-  tinymist.on_notification("textDocument/didOpen", {
-    textDocument: {
-      languageId: "typst",
-      text: `[package]
-name = "yap"
-version = "0.1.0"
-keywords = ["video", "presentation", "html"]
-categories = ["components", "visualization", "integration"]
-entrypoint = "lib.typ"
-authors = ["<@snlxnet>"]
-homepage = "https://yap.snlx.net"
-repository = "https://github.com/snlxnet/yap"
-license = "MIT"
-description = "Add videos & speaker notes to paged documents."`,
-      uri: "file:///pkg/yap/typst.toml",
-      version: 1,
-    }
-  })
+  console.log("init done")
 
-  tinymist.on_notification("textDocument/didOpen", {
-    textDocument: {
-      languageId: "typst",
-      text: `#let works = true`,
-      uri: "file:///pkg/yap/lib.typ",
-      version: 1,
-    }
-  })
+  const loadLib = () => {
+    const isSync = false
+    tinymist.on_request("tinymist/fsChange", {
+      inserts: {
+        content: {
+          type: "ok",
+          content: bytesBase64Encode(`[package]
+  name = "yap"
+  version = "0.1.0"
+  keywords = ["video", "presentation", "html"]
+  categories = ["components", "visualization", "integration"]
+  entrypoint = "lib.typ"
+  authors = ["<@snlxnet>"]
+  homepage = "https://yap.snlx.net"
+  repository = "https://github.com/snlxnet/yap"
+  license = "MIT"
+  description = "Add videos & speaker notes to paged documents."`),
+        },
+        uri: "file:///pkg/yap/typst.toml",
+      },
+      removes: [],
+      isSync,
+    })
 
+    tinymist.on_request("tinymist/fsChange", {
+      inserts: {
+        content: {type: "ok", content: bytesBase64Encode(`#let works = true`)},
+        uri: "file:///pkg/yap/lib.typ",
+      },
+      removes: [],
+      isSync,
+    })
+  }
+
+  loadLib()
   tinymist.on_notification("textDocument/didOpen", {
     textDocument: {
       languageId: "typst",
-      text: `#import "@preview/idk:0.1.0": works\n#works`,
+      text: `#import "@preview/yap:0.1.0": works\n#works`,
       uri: "file:///project/main.typ",
       version: 1,
     }
   })
+  tinymist.on_event(0)
+  loadLib()
 }
