@@ -1,26 +1,8 @@
 import { buildLSP, type LSP } from "./lsp.ts";
-import { getVars } from "./getVars.ts";
-import { getValueDefinition as getValueSlice } from "./getDefition.ts";
+import { getValueSlice } from "./getDefition.ts";
 import type { FieldInfo, Position, Slice } from "./common.ts";
 import { applyFields } from "./apply.ts";
-import { pathToFileURL } from "url";
-import { exec } from "child_process";
 import { resolve } from "path";
-
-const DYNO_VERSION = "0.1.0"
-
-async function sh(command: string): Promise<string> {
-  console.log("$ " + command);
-  return new Promise((resolve, reject) => {
-    exec(command, (exitCode, stdout, stderr) => {
-      if (exitCode) {
-        reject({ exitCode, stdout, stderr });
-        return;
-      }
-      resolve(stdout);
-    });
-  });
-}
 
 function stupidlyGetVars(file: string) {
   const inputs = file.matchAll(/input\((.+)\)/g).toArray().map(parts => ({args: parts[1], matchStart: parts.index + 6}))

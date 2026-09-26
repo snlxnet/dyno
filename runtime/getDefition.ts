@@ -6,7 +6,7 @@ type LocationLink = {
   targetRange: Range;
 };
 
-export async function getValueDefinition({
+export async function getValueSlice({
   fileUri,
   fileBody,
   lsp,
