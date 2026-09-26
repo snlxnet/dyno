@@ -1,11 +1,12 @@
-let mist;
-let tm;
-import("/tinymist/pkg/tinymist.js")
-  .then((pkg) => (mist = pkg))
-  .then(() => mist.default())
-  .then(main);
+const tinymist = initLsp()
 
-async function main() {
+async function initLsp() {
+  let mist;
+  let tm;
+  await import("/tinymist/pkg/tinymist.js")
+    .then((pkg) => (mist = pkg))
+    .then(() => mist.default())
+
   tm = new mist.TinymistLanguageServer({
     sendEvent: (event) => console.log({ event, source: "Tinymist" }),
     sendRequest: (request) => console.log({ request, source: "Tinymist" }),
@@ -20,7 +21,7 @@ async function main() {
   });
   tm.on_request("initialize", {
     processId: null,
-    rootUri: "file:///test.typ",
+    rootUri: "file:///main.typ",
     capabilities: {
       workspace: {
         fileOperations: { didCreate: true },
@@ -37,4 +38,5 @@ async function main() {
     },
   });
   tm.on_notification("initialized", {});
+  return tm
 }
