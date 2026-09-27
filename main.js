@@ -14,6 +14,8 @@ const workerUrl = URL.createObjectURL(
 const typMain = `#import "@preview/dyno:0.1.0": *
 #import "@preview/yap:0.1.0": *
 
+#set text(size: 14pt)
+
 #let number = 0
 #let checkbox = true
 #let string = "hello"
@@ -50,12 +52,11 @@ const typLib = `
     }
   }
 
-  let tracking = json.encode(text.tracking).slice(1, -1)
   let text-align = json.encode(align.alignment.x).slice(1, -1) + ";" + flexify(align.alignment.y)
   let inset = 2mm
   let inset-string = json.encode(inset * 0.75).slice(1, -1)
 
-  [#box(inset: inset, stroke: 1pt+lime, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + tracking + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string)]
+  [#box(inset: inset, stroke: 1pt+lime, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string)]
 }`
 
 main()
@@ -182,10 +183,9 @@ async function main() {
       element.width.baseVal.value = boundsFrame.width
       element.height.baseVal.value = boundsFrame.height
 
-      const [_, fontSize, fontFamily, tracking, color, textAlign, alignItems, inset] = element.parentElement.dataset.typstLabel.split(";")
+      const [_, fontSize, fontFamily, color, textAlign, alignItems, inset] = element.parentElement.dataset.typstLabel.split(";")
       field.style.fontSize = fontSize + "pt"
       field.style.fontFamily = fontFamily
-      field.style.letterSpacing = tracking
       field.style.caretColor = color
       field.style.textAlign = textAlign
       field.style.alignItems = alignItems
@@ -205,7 +205,6 @@ async function main() {
     }).catch(e => console.warn(...e.diagnostics))
 
     const svg = pages.map(page => page.output).join("\n\n")
-    console.warn(svg.diagnostics)
     root.innerHTML = svg
   }
 }
