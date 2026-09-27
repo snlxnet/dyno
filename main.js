@@ -34,15 +34,39 @@ const typLib = `
 #let input(
   body,
   id: "noid",
-) = {
+) = context {
   let val = if type(body) == bool {
     if body [ on ] else [ off ]
   } else [#body]
 
-  [#box(inset: 2mm, stroke: 1pt+lime, val)#label(id)] // todo add json align & color
+  let data = json.encode((id: id, size: text.size), pretty: false)
+
+  [#box(inset: 2mm, stroke: 1pt+lime, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + text.fill.to-hex())]
 }`
 
 main()
+
+function getLabel(label) {
+  const anchor = document.querySelector(`[data-typst-label^="${label};"]`);
+
+  if (!anchor) {
+    return undefined;
+  }
+
+  const existing = anchor.querySelector("foreignObject");
+
+  if (existing) {
+    return existing;
+  }
+
+  const foreign = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "foreignObject",
+  );
+  anchor.appendChild(foreign);
+
+  return foreign;
+}
 
 async function main() {
   const analysis  = await analyze(typMain)
@@ -133,14 +157,25 @@ async function main() {
 
   function reinsert() {
     fields.forEach((field, id) => {
-      const element = getTypstLabel(id)
+      const element = getLabel(id)
       element.classList.add("dyno")
 
-      const bounds = element.parentElement.getBBox()
-      element.width.baseVal.value = bounds.width
-      element.height.baseVal.value = bounds.height
+      const boundsFrame = element.parentElement.getBBox()
+
+      const boundsText = element.previousElementSibling.getBBox()
+      element.width.baseVal.value = boundsFrame.width
+      element.height.baseVal.value = boundsText.height
+      element.x.baseVal.value = boundsText.x
+      element.y.baseVal.value = boundsText.y
+      element.setAttribute("transform", element.previousElementSibling.getAttribute("transform"))
+
+      const [_, fontSize, fontFamily, caretColor] = element.parentElement.dataset.typstLabel.split(";")
+      field.style.fontSize = fontSize + "pt"
+      field.style.fontFamily = fontFamily
+      field.style.caretColor = caretColor
 
       element.appendChild(field)
+      element.onclick = field.focus
     })
   }
 
