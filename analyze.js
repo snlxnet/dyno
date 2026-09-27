@@ -70,6 +70,17 @@ async function main() {
     }
   })
 
+  const inputs = await getInputs(lsp, lines)
+
+  console.log(inputs)
+}
+
+/**
+@param {any} lsp
+@param {string[]} lines
+@returns {Promise<{line: number, character: number}[]>}
+*/
+async function getInputs(lsp, lines) {
   const maybeInputs = await Promise.all(lines
     .flatMap((line, idx) => line.matchAll("input").map(match => ({line: idx, character: match.index})).toArray())
     .map(async ({line, character}) => ({
@@ -77,12 +88,12 @@ async function main() {
       target: await definition(lsp, line, character),
     }))
   )
+
   const duplicateInputs = maybeInputs
     .filter(it => it.target !== null)
     .map(({source}) => source)
-  const inputs = Array.from(new Set(duplicateInputs.map(JSON.stringify))).map(JSON.parse)
 
-  console.log(inputs)
+  return Array.from(new Set(duplicateInputs.map(JSON.stringify))).map(JSON.parse)
 }
 
 /**
