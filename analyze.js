@@ -4,10 +4,17 @@ const SAMPLE_FILE = `#import "@preview/dyno:0.1.0": *
 #let number = 0
 #let checkbox = true
 #let string = "hello"
+#let sel = "first"
+
+#let sel-num = if sel == "first" { 1 } else if sel == "second" { 2
+} else if sel == "third" { 3 }
 
 Number: #input(number) \
 Check: #input(checkbox) \
-String: #input(string)
+String: #input(string) \
+
+Select: #input(sel) \
+Selected: sel-num
 `
 main()
 
@@ -78,20 +85,21 @@ async function main() {
 
   const variables = await getVariables(lsp, inputs)
 
-  const map = variables.map(({input, variable}) => {
-    const id = variable.line + ":" + variable.character
+  const map = variables.map(async ({input, variable}) => {
+    const id = variable.end.line + ":" + variable.end.character
 
     const line = lines[input.line]
     const start = line.slice(0, input.character + 2)
     const end = line.slice(input.character + 2)
     lines[input.line] = start + 'id: "' + id + '", ' + end
 
-    const value = lines[variable.line].slice(variable.character).replace(/\s*=\s/, "")
+    const value = lines[variable.end.line].slice(variable.end.character).replace(/\s*=\s/, "")
+    const options = await getOptions(lsp, lines, variable)
 
-    return { id, value }
+    return options.length ? { id, value, options } : { id, value }
   })
 
-  console.log(map)
+  console.log(Promise.all(map))
 }
 
 /**
@@ -114,7 +122,7 @@ async function getInputs(lsp, lines) {
 /**
 @param {any} lsp
 @param {string[]} lines
-@returns {Promise<{input: {line: number, character: number}, variable: {line: number, character: number}}[]>}
+@returns {Promise<{input: {line: number, character: number}, variable: {start: {line: number, character: number}, end: {line: number, character: number}}}[]>}
 */
 async function getVariables(lsp, inputs) {
   const maybeVariables = await Promise.all(inputs.map(async (input) => ({
@@ -127,9 +135,29 @@ async function getVariables(lsp, inputs) {
 
 /**
 @param {any} lsp
+@param {string[]} lines
+@param {{start: {line: number, character: number}, end: {line: number, character: number}}} variable
+@returns {Promise<string[]>}
+*/
+async function getOptions(lsp, lines, variable) {
+  const name = lines[variable.start.line].slice(variable.start.character, variable.end.character)
+
+  const maybeMentions = await Promise.all(lines
+    .flatMap((line, idx) => line.matchAll(name).map(match => ({line: idx, character: match.index})).toArray())
+    .map(({line, character}) => selectVariable(lsp, line, character))
+  )
+  const mentions = maybeMentions
+    .filter(it => it !== null)
+    .filter(({ line, character }) => lines[line].slice(character).trim().startsWith("=="))
+
+  return mentions.map(({line, character}) => lines[line].slice(character).replace(/\s*==\s"*/, "").split('"', 1)[0])
+}
+
+/**
+@param {any} lsp
 @param {number} line
 @param {number} character
-@returns {Promise<{line: number, character: number} | null>}
+@returns {Promise<{start: {line: number, character: number}, end: {line: number, character: number}} | null>}
 */
 async function definition(lsp, line, character) {
   const response = await lsp.on_request("textDocument/definition", {
@@ -137,7 +165,7 @@ async function definition(lsp, line, character) {
     position: { line, character }
   })
 
-  return response?.at(0)?.targetRange?.end || null
+  return response?.at(0)?.targetRange || null
 }
 
 /**
@@ -154,3 +182,4 @@ async function selectVariable(lsp, line, character) {
 
   return response?.at(0)?.originSelectionRange?.end || null
 }
+
