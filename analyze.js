@@ -72,7 +72,9 @@ async function main() {
 
   const inputs = await getInputs(lsp, lines)
 
-  console.log(inputs)
+  const variables = await getVariables(lsp, inputs)
+
+  console.log({inputs, variables})
 }
 
 /**
@@ -83,17 +85,23 @@ async function main() {
 async function getInputs(lsp, lines) {
   const maybeInputs = await Promise.all(lines
     .flatMap((line, idx) => line.matchAll("input").map(match => ({line: idx, character: match.index})).toArray())
-    .map(async ({line, character}) => ({
-      source: {line, character},
-      target: await definition(lsp, line, character),
-    }))
+    .map(({line, character}) => selectVariable(lsp, line, character))
   )
 
   const duplicateInputs = maybeInputs
-    .filter(it => it.target !== null)
-    .map(({source}) => source)
+    .filter(it => it !== null)
 
   return Array.from(new Set(duplicateInputs.map(JSON.stringify))).map(JSON.parse)
+}
+
+/**
+@param {any} lsp
+@param {string[]} lines
+@returns {Promise<{line: number, character: number}[]>}
+*/
+async function getVariables(lsp, inputs) {
+  const maybeVariables = await Promise.all(inputs.map(input => definition(lsp, input.line, input.character + 2)))
+  return Array.from(new Set(maybeVariables.filter(it => it !== null).map(JSON.stringify))).map(JSON.parse)
 }
 
 /**
@@ -108,5 +116,20 @@ async function definition(lsp, line, character) {
     position: { line, character }
   })
 
-  return response.at(0)?.targetRange?.end || null
+  return response?.at(0)?.targetRange?.end || null
+}
+
+/**
+@param {any} lsp
+@param {number} line
+@param {number} character
+@returns {Promise<{line: number, character: number} | null>}
+*/
+async function selectVariable(lsp, line, character) {
+  const response = await lsp.on_request("textDocument/definition", {
+    textDocument: { uri: "file:///main.typ" },
+    position: { line, character }
+  })
+
+  return response?.at(0)?.originSelectionRange?.end || null
 }
