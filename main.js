@@ -22,12 +22,12 @@ const typMain = `#import "@preview/dyno:0.1.0": *
 #let sel-num = if sel == "first" { 1 } else if sel == "second" { 2
 } else if sel == "third" { 3 }
 
-Number: #input(number) \\
-Check: #input(checkbox) \\
-String: #input(string) \\
+Number: #input(number) = #number \\
+Check: #input(checkbox) = #checkbox \\
+String: #input(string) = #string \\
 
 Select: #input(sel) \\
-Selected: sel-num
+Selected: #sel-num
 `
 
 const typLib = `
@@ -100,6 +100,7 @@ async function main() {
 
       if (type === "boolean") {
         input.type = "checkbox"
+        input.checked = it.value
         input.oninput = () => updateField(it.id, input.checked, input)
       } else if (type === "number") {
         input.type = "number"
@@ -122,7 +123,7 @@ async function main() {
     root.appendChild(element)
     const { pos } = analysis.map.find(it => it.id === id)
     const lines = text.split("\n")
-    lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + `= ${value}`
+    lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + `= ${JSON.stringify(value)}`
     text = lines.join("\n")
     recompile().then(() => {
       reinsert()
