@@ -65,7 +65,8 @@ export async function analyze(text) {
     const end = line.slice(input.character + 1)
     lines[input.line] = start + 'id: "' + id + '", ' + end
 
-    const value = lines[variable.end.line].slice(variable.end.character).replace(/\s*=\s/, "")
+    const valueString = lines[variable.end.line].slice(variable.end.character).replace(/\s*=\s/, "")
+    const value = JSON.parse(valueString)
     const options = await getOptions(lsp, lines, variable)
 
     return options.length ? { id, value, options, pos: variable.end } : { id, value, pos: variable.end }

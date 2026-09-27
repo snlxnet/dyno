@@ -44,6 +44,12 @@ const typLib = `
 
 main()
 
+const INPUT_TYPES = {
+  string: "text",
+  number: "number",
+  boolean: "checkbox",
+}
+
 async function main() {
   const analysis  = await analyze(typMain)
   console.log(analysis.map)
@@ -77,7 +83,37 @@ async function main() {
     format: "svg",
   }).catch(e => e.diagnostics)
 
+  const root = document.getElementById("root")
   const svg = pages.map(page => page.output).join("\n\n")
-  document.getElementById("root").innerHTML = svg
+  root.innerHTML = svg
+
+  // Insert inputs
+  analysis.map.forEach(it => {
+    const element = getTypstLabel(it.id)
+    element.classList.add("dyno")
+
+    const bounds = element.parentElement.getBBox()
+    element.width.baseVal.value = bounds.width
+    element.height.baseVal.value = bounds.height
+
+    if (it.options) {
+      const select = document.createElement("select")
+
+      it.options.forEach(value => {
+        const option = document.createElement("option")
+        option.value = value
+        option.textContent = value
+        select.appendChild(option)
+      })
+
+      element.appendChild(select)
+    } else {
+      const input = document.createElement("input")
+      input.value = it.value
+      input.type = INPUT_TYPES[typeof it.value]
+
+      element.appendChild(input)
+    }
+  })
 }
 
