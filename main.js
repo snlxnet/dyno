@@ -14,7 +14,7 @@ const workerUrl = URL.createObjectURL(
 const typMain = `#import "@preview/dyno:0.1.0": *
 #import "@preview/yap:0.1.0": *
 
-#set text(size: 14pt)
+#set text(size: 14pt, font: "DejaVu Sans Mono")
 
 #let number = 0
 #let checkbox = true
@@ -100,17 +100,22 @@ async function main() {
     },
   });
 
-  const fontNames = ["NewCMMath-Regular.otf", "LibertinusSerif-Regular.otf"];
+  const fontNames = {
+    "NewCMMath-Regular.otf": "New Computer Modern Math",
+    "LibertinusSerif-Regular.otf": "Liberation Serif",
+    "DejaVuSansMono.ttf": "DejaVu Sans Mono",
+  }
   await compiler.addFonts(
-    ...fontNames.map(
-      async (font) =>
-        new Uint8Array(await (await fetch(`${fontsCdn}/${font}`)).arrayBuffer()),
+    ...Object.entries(fontNames).map(
+      async ([file, name]) => {
+        const data = new Uint8Array(await (await fetch(`${fontsCdn}/${file}`)).arrayBuffer())
+        const font = new FontFace(name, data)
+        await font.load()
+        document.fonts.add(font)
+        return data
+      }
     ),
   );
-  fontNames.map(async (name) => {
-    const font = new FontFace(name, `url("/font?name=${name}")`)
-    document.fonts.add(font)
-  })
 
   await compiler.addSource("lib.typ", typLib)
 
