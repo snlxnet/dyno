@@ -16,7 +16,8 @@ String: #input(string) \
 Select: #input(sel) \
 Selected: sel-num
 `
-main()
+
+analyze(SAMPLE_FILE).then(console.log)
 
 async function initLsp() {
   let mist;
@@ -25,22 +26,9 @@ async function initLsp() {
     .then((pkg) => (mist = pkg))
     .then(() => mist.default())
 
-  tm = new mist.TinymistLanguageServer({
-    sendEvent: (event) => console.log({ event, source: "Tinymist" }),
-    sendRequest: (request) => console.log({ request, source: "Tinymist" }),
-    sendNotification: (notification) => {
-      if (notification.method === "tmLog") {
-        console.log(notification.params.data);
-        return;
-      } else if (notification.method === "textDocument/publishDiagnostics") {
-        console.warn(notification.params.diagnostics)
-        return
-      }
-      console.log({ notification, source: "Tinymist" });
-    },
-    resolveFn: (resolver) => console.log({ resolver, source: "Tinymist" }),
-  });
-  const response = tm.on_request("initialize", {
+  const nop = () => {}
+  tm = new mist.TinymistLanguageServer({ sendEvent: nop, sendRequest: nop, sendNotification: nop, resolveFn: nop });
+  tm.on_request("initialize", {
     processId: null,
     rootUri: "file:///main.typ",
     capabilities: {
@@ -59,13 +47,15 @@ async function initLsp() {
       },
     },
   });
-  console.log(response.capabilities)
   tm.on_notification("initialized", {});
   return tm
 }
 
-async function main() {
-  const lines = SAMPLE_FILE.split("\n")
+/**
+@param {string} text 
+*/
+export async function analyze(text) {
+  const lines = text.split("\n")
 
   const dynoImportIdx = lines.findIndex(line => line.includes('"@preview/dyno'))
   lines[dynoImportIdx] = "#let input(..args) = []"
@@ -99,7 +89,10 @@ async function main() {
     return options.length ? { id, value, options } : { id, value }
   })
 
-  console.log(Promise.all(map))
+  const result = await Promise.all(map)
+  await lsp.free()
+
+  return result
 }
 
 /**
