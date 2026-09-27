@@ -22,7 +22,9 @@ analyze(SAMPLE_FILE).then(console.log)
 async function initLsp() {
   let mist;
   let tm;
-  await import("/tinymist/pkg/tinymist.js")
+  const isNode = typeof window === "undefined"
+
+  await import(isNode ? "./node-lsp.js" : "/tinymist/pkg/tinymist.js")
     .then((pkg) => (mist = pkg))
     .then(() => mist.default())
 
