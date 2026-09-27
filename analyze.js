@@ -70,14 +70,32 @@ async function main() {
     }
   })
 
-  const references = await lsp.on_request("textDocument/references", {
-    context: { includeDeclaration: true },
-    textDocument: { uri },
-    position: {
-      line: dynoImportIdx,
-      character: 5,
-    }
+  const maybeInputs = await Promise.all(lines
+    .flatMap((line, idx) => line.matchAll("input").map(match => ({line: idx, character: match.index})).toArray())
+    .map(async ({line, character}) => ({
+      source: {line, character},
+      target: await definition(lsp, line, character),
+    }))
+  )
+  const duplicateInputs = maybeInputs
+    .filter(it => it.target !== null)
+    .map(({source}) => source)
+  const inputs = Array.from(new Set(duplicateInputs.map(JSON.stringify))).map(JSON.parse)
+
+  console.log(inputs)
+}
+
+/**
+@param {any} lsp
+@param {number} line
+@param {number} character
+@returns {Promise<{line: number, character: number} | null>}
+*/
+async function definition(lsp, line, character) {
+  const response = await lsp.on_request("textDocument/definition", {
+    textDocument: { uri: "file:///main.typ" },
+    position: { line, character }
   })
 
-  console.log({text: lines.join("\n"), references, dynoImportIdx})
+  return response.at(0)?.targetRange?.end || null
 }
