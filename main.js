@@ -105,8 +105,9 @@ async function main() {
       element.appendChild(select)
     } else {
       const input = document.createElement("input")
-      input.value = it.value
       const type = typeof it.value
+      input.value = it.value
+      input.onkeydown = (e) => e.stopPropagation()
 
       if (type === "boolean") {
         input.type = "checkbox"
