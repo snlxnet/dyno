@@ -49,7 +49,7 @@ async function main() {
   console.log(analysis.map)
 
   // Render
-  const text = analysis.text.replace("@preview/dyno:0.1.0", "lib.typ")
+  let text = analysis.text.replace("@preview/dyno:0.1.0", "lib.typ")
   
   const compiler = await createTypstCompiler({
     backend: "auto",
@@ -70,16 +70,9 @@ async function main() {
   );
 
   await compiler.addSource("lib.typ", typLib)
-  await compiler.addSource("main.typ", text)
-  console.log(text)
-  const {pages} = await compiler.compile({
-    main: "main.typ",
-    format: "svg",
-  }).catch(e => e.diagnostics)
 
   const root = document.getElementById("root")
-  const svg = pages.map(page => page.output).join("\n\n")
-  root.innerHTML = svg
+  await recompile()
 
   // Insert inputs
   analysis.map.forEach(it => {
@@ -128,7 +121,23 @@ async function main() {
   @param {string | number | boolean} value
   */
   function updateField(id, value) {
-    console.log("todo recompile", {id, value})
+    const { pos } = analysis.map.find(it => it.id === id)
+    const lines = text.split("\n")
+    lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + `= ${value}`
+    text = lines.join("\n")
+    recompile()
+  }
+
+  async function recompile() {
+    await compiler.addSource("main.typ", text)
+    console.log(text)
+    const {pages} = await compiler.compile({
+      main: "main.typ",
+      format: "svg",
+    }).catch(e => e.diagnostics)
+
+    const svg = pages.map(page => page.output).join("\n\n")
+    root.innerHTML = svg
   }
 }
 
