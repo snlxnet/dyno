@@ -22,6 +22,8 @@ const typMain = `#import "@preview/dyno:0.1.0": *
 #let sel-num = if sel == "first" { 1 } else if sel == "second" { 2
 } else if sel == "third" { 3 }
 
+#set align(center)
+
 Number: #input(number) = #number \\
 Check: #input(checkbox) = #checkbox \\
 String: #input(string) = #string \\
@@ -40,8 +42,19 @@ const typLib = `
   } else [#body]
 
   let data = json.encode((id: id, size: text.size), pretty: false)
+  let flexify(align) = {
+    if align == start or align == top or align == left {
+      "flex-start"
+    } else if align == end or align == bottom or align == right {
+      "flex-end"
+    } else {
+      "center"
+    }
+  }
 
-  [#box(inset: 2mm, stroke: 1pt+lime, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + text.fill.to-hex())]
+  let text-align = json.encode(align.alignment.x).slice(1, -1) + ";" + flexify(align.alignment.y)
+
+  [#box(inset: 2mm, stroke: 1pt+lime, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + text.fill.to-hex() + ";" + text-align)]
 }`
 
 main()
@@ -161,18 +174,15 @@ async function main() {
       element.classList.add("dyno")
 
       const boundsFrame = element.parentElement.getBBox()
-
-      const boundsText = element.previousElementSibling.getBBox()
       element.width.baseVal.value = boundsFrame.width
-      element.height.baseVal.value = boundsText.height
-      element.x.baseVal.value = boundsText.x
-      element.y.baseVal.value = boundsText.y
-      element.setAttribute("transform", element.previousElementSibling.getAttribute("transform"))
+      element.height.baseVal.value = boundsFrame.height
 
-      const [_, fontSize, fontFamily, caretColor] = element.parentElement.dataset.typstLabel.split(";")
+      const [_, fontSize, fontFamily, color, textAlign, alignItems] = element.parentElement.dataset.typstLabel.split(";")
       field.style.fontSize = fontSize + "pt"
       field.style.fontFamily = fontFamily
-      field.style.caretColor = caretColor
+      field.style.caretColor = color
+      field.style.textAlign = textAlign
+      field.style.alignItems = alignItems
 
       element.appendChild(field)
       element.onclick = field.focus
