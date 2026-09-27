@@ -1,5 +1,5 @@
 const SAMPLE_FILE = `#import "@preview/dyno:0.1.0": *
-// #import "@preview/yap:0.1.0": *
+#import "@preview/yap:0.1.0": *
 
 #let number = 0
 #let checkbox = true
@@ -86,7 +86,7 @@ export async function analyze(text) {
     const value = lines[variable.end.line].slice(variable.end.character).replace(/\s*=\s/, "")
     const options = await getOptions(lsp, lines, variable)
 
-    return options.length ? { id, value, options } : { id, value }
+    return options.length ? { id, value, options, pos: variable.end } : { id, value, pos: variable.end }
   })
 
   const result = await Promise.all(map)
