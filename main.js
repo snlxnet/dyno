@@ -75,16 +75,11 @@ async function main() {
   await recompile()
 
   // Insert inputs
+  const fields = new Map()
   analysis.map.forEach(it => {
-    const element = getTypstLabel(it.id)
-    element.classList.add("dyno")
-
-    const bounds = element.parentElement.getBBox()
-    element.width.baseVal.value = bounds.width
-    element.height.baseVal.value = bounds.height
-
     if (it.options) {
       const select = document.createElement("select")
+      select.id = it.id
 
       it.options.forEach(value => {
         const option = document.createElement("option")
@@ -93,39 +88,59 @@ async function main() {
         select.appendChild(option)
       })
 
-      select.oninput = () => updateField(it.id, select.value)
+      select.oninput = () => updateField(it.id, select.value, select)
 
-      element.appendChild(select)
+      fields.set(it.id, select)
     } else {
       const input = document.createElement("input")
       const type = typeof it.value
+      input.id = it.id
       input.value = it.value
       input.onkeydown = (e) => e.stopPropagation()
 
       if (type === "boolean") {
         input.type = "checkbox"
-        input.oninput = () => updateField(it.id, input.checked)
+        input.oninput = () => updateField(it.id, input.checked, input)
       } else if (type === "number") {
         input.type = "number"
-        input.oninput = () => updateField(it.id, +input.value)
+        input.oninput = () => updateField(it.id, +input.value, input)
       } else {
-        input.oninput = () => updateField(it.id, input.value)
+        input.oninput = () => updateField(it.id, input.value, input)
       }
 
-      element.appendChild(input)
+      fields.set(it.id, input)
     }
   })
+  reinsert()
 
   /**
   @param {string} id
   @param {string | number | boolean} value
+  @param {HTMLElement} element
   */
-  function updateField(id, value) {
+  function updateField(id, value, element) {
+    root.appendChild(element)
     const { pos } = analysis.map.find(it => it.id === id)
     const lines = text.split("\n")
     lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + `= ${value}`
     text = lines.join("\n")
-    recompile()
+    recompile().then(() => {
+      reinsert()
+      element.focus()
+    })
+  }
+
+  function reinsert() {
+    fields.forEach((field, id) => {
+      const element = getTypstLabel(id)
+      element.classList.add("dyno")
+
+      const bounds = element.parentElement.getBBox()
+      element.width.baseVal.value = bounds.width
+      element.height.baseVal.value = bounds.height
+
+      element.appendChild(field)
+    })
   }
 
   async function recompile() {
