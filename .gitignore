@@ -12,6 +12,8 @@ server.js
 
 # deps
 node_modules/
+.direnv/
+tinymist/
 
 # env
 .env
