@@ -2,8 +2,12 @@ const SAMPLE_FILE = `#import "@preview/dyno:0.1.0": *
 // #import "@preview/yap:0.1.0": *
 
 #let number = 0
-Number: #input(number)
-  #input(number)
+#let checkbox = true
+#let string = "hello"
+
+Number: #input(number) \
+Check: #input(checkbox) \
+String: #input(string)
 `
 main()
 
@@ -72,24 +76,22 @@ async function main() {
 
   const inputs = await getInputs(lsp, lines)
 
-  const uuids = new Map()
-  inputs.forEach(input => {
+  const variables = await getVariables(lsp, inputs)
+
+  const map = variables.map(({input, variable}) => {
+    const id = variable.line + ":" + variable.character
+
     const line = lines[input.line]
     const start = line.slice(0, input.character + 2)
     const end = line.slice(input.character + 2)
-    const uuid = crypto.randomUUID()
-    uuids.set(input, uuid)
+    lines[input.line] = start + 'id: "' + id + '", ' + end
 
-    lines[input.line] = start + 'uuid: "' + uuid + '", ' + end
+    const value = lines[variable.line].slice(variable.character).replace(/\s*=\s/, "")
+
+    return { id, value }
   })
 
-  const variables = await getVariables(lsp, inputs)
-
-  const map = variables.map(({input, variable}) => (
-    [uuids.get(input), variable]
-  ))
-
-  console.log({inputs, variables, map})
+  console.log(map)
 }
 
 /**
