@@ -72,9 +72,24 @@ async function main() {
 
   const inputs = await getInputs(lsp, lines)
 
+  const uuids = new Map()
+  inputs.forEach(input => {
+    const line = lines[input.line]
+    const start = line.slice(0, input.character + 2)
+    const end = line.slice(input.character + 2)
+    const uuid = crypto.randomUUID()
+    uuids.set(input, uuid)
+
+    lines[input.line] = start + 'uuid: "' + uuid + '", ' + end
+  })
+
   const variables = await getVariables(lsp, inputs)
 
-  console.log({inputs, variables})
+  const map = variables.map(({input, variable}) => (
+    [uuids.get(input), variable]
+  ))
+
+  console.log({inputs, variables, map})
 }
 
 /**
@@ -97,11 +112,15 @@ async function getInputs(lsp, lines) {
 /**
 @param {any} lsp
 @param {string[]} lines
-@returns {Promise<{line: number, character: number}[]>}
+@returns {Promise<{input: {line: number, character: number}, variable: {line: number, character: number}}[]>}
 */
 async function getVariables(lsp, inputs) {
-  const maybeVariables = await Promise.all(inputs.map(input => definition(lsp, input.line, input.character + 2)))
-  return Array.from(new Set(maybeVariables.filter(it => it !== null).map(JSON.stringify))).map(JSON.parse)
+  const maybeVariables = await Promise.all(inputs.map(async (input) => ({
+    variable: await definition(lsp, input.line, input.character + 2),
+    input,
+  })))
+
+  return maybeVariables.filter(it => it.variable !== null)
 }
 
 /**
