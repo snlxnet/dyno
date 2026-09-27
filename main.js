@@ -22,8 +22,6 @@ const typMain = `#import "@preview/dyno:0.1.0": *
 #let sel-num = if sel == "first" { 1 } else if sel == "second" { 2
 } else if sel == "third" { 3 }
 
-#set align(center)
-
 Number: #input(number) = #number \\
 Check: #input(checkbox) = #checkbox \\
 String: #input(string) = #string \\
@@ -53,8 +51,10 @@ const typLib = `
   }
 
   let text-align = json.encode(align.alignment.x).slice(1, -1) + ";" + flexify(align.alignment.y)
+  let inset = 2mm
+  let inset-string = json.encode(inset * 0.75).slice(1, -1)
 
-  [#box(inset: 2mm, stroke: 1pt+lime, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + text.fill.to-hex() + ";" + text-align)]
+  [#box(inset: inset, stroke: 1pt+lime, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string)]
 }`
 
 main()
@@ -177,12 +177,13 @@ async function main() {
       element.width.baseVal.value = boundsFrame.width
       element.height.baseVal.value = boundsFrame.height
 
-      const [_, fontSize, fontFamily, color, textAlign, alignItems] = element.parentElement.dataset.typstLabel.split(";")
+      const [_, fontSize, fontFamily, color, textAlign, alignItems, inset] = element.parentElement.dataset.typstLabel.split(";")
       field.style.fontSize = fontSize + "pt"
       field.style.fontFamily = fontFamily
       field.style.caretColor = color
       field.style.textAlign = textAlign
       field.style.alignItems = alignItems
+      field.style.padding = inset
 
       element.appendChild(field)
       element.onclick = field.focus
@@ -195,7 +196,7 @@ async function main() {
     const {pages} = await compiler.compile({
       main: "main.typ",
       format: "svg",
-    }).catch(e => e.diagnostics)
+    }).catch(e => console.warn(...e.diagnostics))
 
     const svg = pages.map(page => page.output).join("\n\n")
     root.innerHTML = svg
