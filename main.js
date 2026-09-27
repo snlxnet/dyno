@@ -44,12 +44,6 @@ const typLib = `
 
 main()
 
-const INPUT_TYPES = {
-  string: "text",
-  number: "number",
-  boolean: "checkbox",
-}
-
 async function main() {
   const analysis  = await analyze(typMain)
   console.log(analysis.map)
@@ -106,14 +100,34 @@ async function main() {
         select.appendChild(option)
       })
 
+      select.oninput = () => updateField(it.id, select.value)
+
       element.appendChild(select)
     } else {
       const input = document.createElement("input")
       input.value = it.value
-      input.type = INPUT_TYPES[typeof it.value]
+      const type = typeof it.value
+
+      if (type === "boolean") {
+        input.type = "checkbox"
+        input.oninput = () => updateField(it.id, input.checked)
+      } else if (type === "number") {
+        input.type = "number"
+        input.oninput = () => updateField(it.id, +input.value)
+      } else {
+        input.oninput = () => updateField(it.id, input.value)
+      }
 
       element.appendChild(input)
     }
   })
+
+  /**
+  @param {string} id
+  @param {string | number | boolean} value
+  */
+  function updateField(id, value) {
+    console.log("todo recompile", {id, value})
+  }
 }
 
