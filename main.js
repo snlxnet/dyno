@@ -30,6 +30,10 @@ String: #input(string) = #string \\
 
 Select: #input(sel) \\
 Selected: #sel-num
+
+#for i in range(number) {
+  box(rect())
+}
 `
 
 const typLib = `
