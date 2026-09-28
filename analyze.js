@@ -1,24 +1,3 @@
-const SAMPLE_FILE = `#import "@preview/dyno:0.1.0": *
-#import "@preview/yap:0.1.0": *
-
-#let number = 0
-#let checkbox = true
-#let string = "hello"
-#let sel = "first"
-
-#let sel-num = if sel == "first" { 1 } else if sel == "second" { 2
-} else if sel == "third" { 3 }
-
-Number: #input(number) \
-Check: #input(checkbox) \
-String: #input(string) \
-
-Select: #input(sel) \
-Selected: sel-num
-`
-
-analyze(SAMPLE_FILE).then(console.log)
-
 async function initLsp() {
   let mist;
   let tm;
@@ -60,6 +39,7 @@ export async function analyze(text) {
   const lines = text.split("\n")
 
   const dynoImportIdx = lines.findIndex(line => line.includes('"@preview/dyno'))
+  const initialDynoImport = lines[dynoImportIdx]
   lines[dynoImportIdx] = "#let input(..args) = []"
 
   const lsp = await initLsp()
@@ -81,11 +61,12 @@ export async function analyze(text) {
     const id = variable.end.line + ":" + variable.end.character
 
     const line = lines[input.line]
-    const start = line.slice(0, input.character + 2)
-    const end = line.slice(input.character + 2)
+    const start = line.slice(0, input.character + 1)
+    const end = line.slice(input.character + 1)
     lines[input.line] = start + 'id: "' + id + '", ' + end
 
-    const value = lines[variable.end.line].slice(variable.end.character).replace(/\s*=\s/, "")
+    const valueString = lines[variable.end.line].slice(variable.end.character).replace(/\s*=\s/, "")
+    const value = JSON.parse(valueString)
     const options = await getOptions(lsp, lines, variable)
 
     return options.length ? { id, value, options, pos: variable.end } : { id, value, pos: variable.end }
@@ -94,7 +75,12 @@ export async function analyze(text) {
   const result = await Promise.all(map)
   await lsp.free()
 
-  return result
+  lines[dynoImportIdx] = initialDynoImport
+
+  return {
+    map: result,
+    text: lines.join("\n")
+  }
 }
 
 /**
