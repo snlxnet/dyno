@@ -150,6 +150,8 @@ async function main() {
       input.id = it.id
       input.value = it.value
       input.onkeydown = (e) => e.stopPropagation()
+      const selectAll = () => input.setSelectionRange(0, input.value.length)
+      const selectEnd = () => input.setSelectionRange(input.value.length, input.value.length)
 
       if (type === "boolean") {
         input.type = "checkbox"
@@ -159,6 +161,7 @@ async function main() {
         input.inputMode = "numeric"
         input.oninput = () => {
           input.value = input.value.replace(/[.,]+/, ".").replaceAll(/[^0-9.,]/g, "")
+          selectEnd()
           const endsInDecimalPoint = ".,".includes(input.value.at(-1))
           const value = endsInDecimalPoint ? input.value + "0" : (input.value||"0")
 
@@ -167,10 +170,12 @@ async function main() {
         input.onkeydown = (event) => {
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
             event.preventDefault()
+            event.shiftKey ? selectAll() : selectEnd()
           }
           event.stopPropagation()
         }
-        input.onselectionchange = () => input.setSelectionRange(input.value.length, input.value.length)
+        input.onmousedown = () => selectEnd()
+        input.onfocus = (e) => e.sourceCapabilities && selectAll()
       } else {
         input.oninput = () => updateField(it.id, `"${input.value}"`, input)
       }
