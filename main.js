@@ -130,9 +130,10 @@ async function main() {
   // Insert inputs
   const fields = new Map()
   analysis.map.forEach(it => {
+    const type = typeof it.value
+
     if (it.options) {
       const select = document.createElement("select")
-      select.id = it.id
 
       it.options.forEach(value => {
         const option = document.createElement("option")
@@ -144,12 +145,23 @@ async function main() {
       select.oninput = () => updateField(it.id, `"${select.value}"`, select)
 
       fields.set(it.id, select)
+    } else if (type === "string") {
+      const text = document.createElement("textarea")
+      text.innerHTML = it.value
+      text.onkeydown = (e) => e.stopPropagation()
+
+      text.oninput = () => {
+        const value = text.value.replaceAll("\n", "\\n")
+        updateField(it.id, `"${value}"`, text)
+
+        const isSingleLine = text.value.split("\n").length === 1
+        text.style.overflow = isSingleLine ? "hidden" : "auto"
+      }
+
+      fields.set(it.id, text)
     } else {
       const input = document.createElement("input")
-      const type = typeof it.value
-      input.id = it.id
       input.value = it.value
-      input.onkeydown = (e) => e.stopPropagation()
       const selectAll = () => input.setSelectionRange(0, input.value.length)
       const selectEnd = () => input.setSelectionRange(input.value.length, input.value.length)
 
@@ -176,8 +188,6 @@ async function main() {
         }
         input.onmousedown = () => selectEnd()
         input.onfocus = (e) => e.sourceCapabilities && selectAll()
-      } else {
-        input.oninput = () => updateField(it.id, `"${input.value}"`, input)
       }
 
       fields.set(it.id, input)
@@ -219,6 +229,12 @@ async function main() {
       field.style.textAlign = textAlign
       field.style.alignItems = alignItems
       field.style.padding = inset
+
+      if (field.tagName === "TEXTAREA") {
+        field.style.color = color
+        const typstText = element.parentElement.querySelectorAll("g")
+        typstText.forEach(it => it.remove())
+      }
 
       element.appendChild(field)
       element.onclick = field.focus
