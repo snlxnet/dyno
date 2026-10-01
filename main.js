@@ -31,7 +31,7 @@ String: #input(string) = #string \\
 Select: #input(sel) \\
 Selected: #sel-num
 
-#for i in range(number) {
+#for i in range(int(number)) {
   box(rect())
 }
 `
@@ -141,7 +141,7 @@ async function main() {
         select.appendChild(option)
       })
 
-      select.oninput = () => updateField(it.id, select.value, select)
+      select.oninput = () => updateField(it.id, `"${select.value}"`, select)
 
       fields.set(it.id, select)
     } else {
@@ -156,10 +156,23 @@ async function main() {
         input.checked = it.value
         input.oninput = () => updateField(it.id, input.checked, input)
       } else if (type === "number") {
-        input.type = "number"
-        input.oninput = () => updateField(it.id, +input.value, input)
+        input.inputMode = "numeric"
+        input.oninput = () => {
+          input.value = input.value.replace(/[.,]+/, ".").replaceAll(/[^0-9.,]/g, "")
+          const endsInDecimalPoint = ".,".includes(input.value.at(-1))
+          const value = endsInDecimalPoint ? input.value + "0" : (input.value||"0")
+
+          updateField(it.id, value, input)
+        }
+        input.onkeydown = (event) => {
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault()
+          }
+          event.stopPropagation()
+        }
+        input.onselectionchange = () => input.setSelectionRange(input.value.length, input.value.length)
       } else {
-        input.oninput = () => updateField(it.id, input.value, input)
+        input.oninput = () => updateField(it.id, `"${input.value}"`, input)
       }
 
       fields.set(it.id, input)
@@ -169,14 +182,14 @@ async function main() {
 
   /**
   @param {string} id
-  @param {string | number | boolean} value
+  @param {string} value
   @param {HTMLElement} element
   */
   function updateField(id, value, element) {
     root.appendChild(element)
     const { pos } = analysis.map.find(it => it.id === id)
     const lines = text.split("\n")
-    lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + `= ${JSON.stringify(value)}`
+    lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + "=" + value
     text = lines.join("\n")
     recompile().then(() => {
       reinsert()
