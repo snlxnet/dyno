@@ -2,6 +2,13 @@ import { analyze } from "./analyze.js"
 import { createTypstCompiler } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/+esm";
 import { createWebWorker } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/worker/browser.js";
 
+const INPUT_STATE = {
+  neutral: 0,
+  focused: 1,
+  selected: 2,
+  hangingDecimalPoint: 3,
+}
+
 const typstCdn = "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist";
 const fontsCdn = "https://cdn.jsdelivr.net/npm/@typst-wasm/fonts@1.0.0/dist/files";
 const workerEntry = `${typstCdn}/worker/web-worker.js`;
@@ -40,10 +47,11 @@ const typLib = `
 #let input(
   body,
   id: "noid",
+  state: 0,
 ) = context {
   let val = if type(body) == bool {
     if body [ on ] else [ off ]
-  } else [#body]
+  } else [#state;#body]
 
   let data = json.encode((id: id, size: text.size), pretty: false)
   let flexify(align) = {
@@ -143,12 +151,16 @@ async function main() {
       })
 
       select.oninput = () => updateField(it.id, `"${select.value}"`, select)
+      select.onfocus = (e) => e.sourceCapabilities && updateField(it.id, null, select, 1)
+      select.onblur = (e) => e.sourceCapabilities && updateField(it.id, null, select, 0)
 
       fields.set(it.id, select)
     } else if (type === "string") {
       const text = document.createElement("textarea")
       text.innerHTML = it.value
       text.onkeydown = (e) => e.stopPropagation()
+      text.onfocus = (e) => e.sourceCapabilities && updateField(it.id, null, text, 1)
+      text.onblur = (e) => e.sourceCapabilities && updateField(it.id, null, text, 0)
 
       text.oninput = () => {
         const value = text.value.replaceAll("\n", "\\n")
@@ -162,6 +174,7 @@ async function main() {
     } else {
       const input = document.createElement("input")
       input.value = it.value
+
       const selectAll = () => input.setSelectionRange(0, input.value.length)
       const selectEnd = () => input.setSelectionRange(input.value.length, input.value.length)
 
@@ -169,25 +182,45 @@ async function main() {
         input.type = "checkbox"
         input.checked = it.value
         input.oninput = () => updateField(it.id, input.checked, input)
+        input.onfocus = (e) => e.sourceCapabilities && updateField(it.id, null, input, 1)
+        input.onblur = (e) => e.sourceCapabilities && updateField(it.id, null, input, 0)
       } else if (type === "number") {
+        const getState = () => input.selectionStart === 0 ? INPUT_STATE.selected : (input.value.at(-1) === "." ? INPUT_STATE.hangingDecimalPoint : null)
+
         input.inputMode = "numeric"
+
         input.oninput = () => {
           input.value = input.value.replace(/[.,]+/, ".").replaceAll(/[^0-9.,]/g, "")
           selectEnd()
-          const endsInDecimalPoint = ".,".includes(input.value.at(-1))
-          const value = endsInDecimalPoint ? input.value + "0" : (input.value||"0")
+          const value = input.value.at(-1) === "." ? input.value + "0" : (input.value||"0")
 
-          updateField(it.id, value, input)
+          updateField(it.id, value, input, getState())
         }
         input.onkeydown = (event) => {
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
             event.preventDefault()
             event.shiftKey ? selectAll() : selectEnd()
+            updateField(it.id, null, input, getState())
           }
           event.stopPropagation()
         }
         input.onmousedown = () => selectEnd()
-        input.onfocus = (e) => e.sourceCapabilities && selectAll()
+        input.onfocus = (e) => {
+            console.log("sel0")
+          if (e.sourceCapabilities) {
+            console.log("sel1")
+            selectAll()
+            console.log("sel2")
+            updateField(it.id, null, input, getState())
+          }
+        }
+        input.onblur = (e) => {
+          if (e.sourceCapabilities) {
+            selectEnd()
+            updateField(it.id, null, input, 0)
+            console.log("blur")
+          }
+        }
       }
 
       fields.set(it.id, input)
@@ -197,14 +230,27 @@ async function main() {
 
   /**
   @param {string} id
-  @param {string} value
+  @param {string | null} value where null means to keep the last one
   @param {HTMLElement} element
+  @param {number | null} state
   */
-  function updateField(id, value, element) {
+  function updateField(id, value, element, state = null) {
+    const focus = document.activeElement
+
     root.appendChild(element)
-    const { pos } = analysis.map.find(it => it.id === id)
+    const { pos, input } = analysis.map.find(it => it.id === id)
     const lines = text.split("\n")
-    lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + "=" + value
+
+    if (value !== null) {
+      lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + "=" + value
+    }
+
+    const inputLine = lines[input.line].replaceAll(/input\(state:\d,id:/g, "input(id:")
+    const beforeInput = inputLine.slice(0, input.character + 1)
+    const afterInput = inputLine.slice(input.character + 1)
+    const defaultState = focus === element ? INPUT_STATE.focused : INPUT_STATE.neutral
+    lines[input.line] = `${beforeInput}state:${state ?? defaultState},${afterInput}`
+
     text = lines.join("\n")
     recompile().then(() => {
       reinsert()
@@ -225,7 +271,6 @@ async function main() {
       field.style.fontSize = fontSize + "pt"
       field.style.fontFamily = fontFamily
       field.style.letterSpacing = tracking
-      field.style.caretColor = color
       field.style.textAlign = textAlign
       field.style.alignItems = alignItems
       field.style.padding = inset
@@ -233,7 +278,7 @@ async function main() {
       if (field.tagName === "TEXTAREA") {
         field.style.color = color
         const typstText = element.parentElement.querySelectorAll("g")
-        typstText.forEach(it => it.remove())
+        // typstText.forEach(it => it.remove())
       }
 
       element.appendChild(field)
