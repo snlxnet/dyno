@@ -194,11 +194,26 @@ async function main() {
     }
   })
   reinsert()
+  document.addEventListener("focusin", (e) => {
+    if (e.sourceCapabilities) {
+      if (e.target.type === "checkbox") {
+        e.target.checked = !e.target.checked
+      }
+      updateField(e.target)
+    }
+  })
+  document.addEventListener("focusout", (e) => {
+    if (e.sourceCapabilities) {
+      console.log(e)
+      updateField(e.target, true)
+    }
+  })
 
   /**
   @param {HTMLElement} element
+  @param {boolean} dontFocus
   */
-  function updateField(element) {
+  function updateField(element, dontFocus = false) {
     const id = element.id
     let value = `"${element.value}"`
     if (element.tagName === "TEXTAREA") {
@@ -213,7 +228,7 @@ async function main() {
     }
 
     const hasFocus = document.activeElement === element
-    const hasSelection = element.selectionStart === 0
+    const hasSelection = element.tagName !== "TEXTAREA" && element.selectionStart === 0
     if (!hasFocus && hasSelection) {
       element.setSelectionRange(0, 0)
     }
@@ -229,16 +244,18 @@ async function main() {
     const inputLine = lines[input.line].replaceAll(/input\(state:\d,id:/g, "input(id:")
     const beforeInput = inputLine.slice(0, input.character + 1)
     const afterInput = inputLine.slice(input.character + 1)
-    let state = 0
-    hasFocus && (state = 1)
+    let state = 1
     hasSelection && (state = 2)
+    hasFocus || (state = 0)
     element.inputMode === "numeric" && element.value.endsWith(".") && (state = 3)
     lines[input.line] = `${beforeInput}state:${state},${afterInput}`
 
     text = lines.join("\n")
     recompile().then(() => {
       reinsert()
-      element.focus()
+      if (!dontFocus) {
+        element.focus()
+      }
     })
   }
 
