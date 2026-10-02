@@ -294,7 +294,7 @@ async function main() {
       if (field.tagName === "TEXTAREA") {
         field.style.color = color
         const typstText = element.parentElement.querySelectorAll("g")
-        // typstText.forEach(it => it.remove())
+        typstText.forEach(it => it.remove())
       }
 
       element.appendChild(field)
