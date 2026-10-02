@@ -2,13 +2,6 @@ import { analyze } from "./analyze.js"
 import { createTypstCompiler } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/+esm";
 import { createWebWorker } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/worker/browser.js";
 
-const INPUT_STATE = {
-  neutral: 0,
-  focused: 1,
-  selected: 2,
-  hangingDecimalPoint: 3,
-}
-
 const typstCdn = "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist";
 const fontsCdn = "https://cdn.jsdelivr.net/npm/@typst-wasm/fonts@1.0.0/dist/files";
 const workerEntry = `${typstCdn}/worker/web-worker.js`;
@@ -142,6 +135,7 @@ async function main() {
 
     if (it.options) {
       const select = document.createElement("select")
+      select.id = it.id
 
       it.options.forEach(value => {
         const option = document.createElement("option")
@@ -149,22 +143,18 @@ async function main() {
         option.textContent = value
         select.appendChild(option)
       })
-
-      select.oninput = () => updateField(it.id, `"${select.value}"`, select)
-      select.onfocus = (e) => e.sourceCapabilities && updateField(it.id, null, select, 1)
-      select.onblur = (e) => e.sourceCapabilities && updateField(it.id, null, select, 0)
+      select.value = it.value
+      select.oninput = () => updateField(select)
 
       fields.set(it.id, select)
     } else if (type === "string") {
       const text = document.createElement("textarea")
+      text.id = it.id
       text.innerHTML = it.value
       text.onkeydown = (e) => e.stopPropagation()
-      text.onfocus = (e) => e.sourceCapabilities && updateField(it.id, null, text, 1)
-      text.onblur = (e) => e.sourceCapabilities && updateField(it.id, null, text, 0)
 
       text.oninput = () => {
-        const value = text.value.replaceAll("\n", "\\n")
-        updateField(it.id, `"${value}"`, text)
+        updateField(text)
 
         const isSingleLine = text.value.split("\n").length === 1
         text.style.overflow = isSingleLine ? "hidden" : "auto"
@@ -173,54 +163,31 @@ async function main() {
       fields.set(it.id, text)
     } else {
       const input = document.createElement("input")
+      input.id = it.id
       input.value = it.value
-
       const selectAll = () => input.setSelectionRange(0, input.value.length)
       const selectEnd = () => input.setSelectionRange(input.value.length, input.value.length)
 
       if (type === "boolean") {
         input.type = "checkbox"
         input.checked = it.value
-        input.oninput = () => updateField(it.id, input.checked, input)
-        input.onfocus = (e) => e.sourceCapabilities && updateField(it.id, null, input, 1)
-        input.onblur = (e) => e.sourceCapabilities && updateField(it.id, null, input, 0)
+        input.oninput = () => updateField(input)
       } else if (type === "number") {
-        const getState = () => input.selectionStart === 0 ? INPUT_STATE.selected : (input.value.at(-1) === "." ? INPUT_STATE.hangingDecimalPoint : null)
-
         input.inputMode = "numeric"
-
         input.oninput = () => {
           input.value = input.value.replace(/[.,]+/, ".").replaceAll(/[^0-9.,]/g, "")
           selectEnd()
-          const value = input.value.at(-1) === "." ? input.value + "0" : (input.value||"0")
-
-          updateField(it.id, value, input, getState())
+          updateField(input)
         }
         input.onkeydown = (event) => {
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
             event.preventDefault()
             event.shiftKey ? selectAll() : selectEnd()
-            updateField(it.id, null, input, getState())
           }
           event.stopPropagation()
         }
         input.onmousedown = () => selectEnd()
-        input.onfocus = (e) => {
-            console.log("sel0")
-          if (e.sourceCapabilities) {
-            console.log("sel1")
-            selectAll()
-            console.log("sel2")
-            updateField(it.id, null, input, getState())
-          }
-        }
-        input.onblur = (e) => {
-          if (e.sourceCapabilities) {
-            selectEnd()
-            updateField(it.id, null, input, 0)
-            console.log("blur")
-          }
-        }
+        input.onfocus = (e) => e.sourceCapabilities && selectAll()
       }
 
       fields.set(it.id, input)
@@ -229,13 +196,27 @@ async function main() {
   reinsert()
 
   /**
-  @param {string} id
-  @param {string | null} value where null means to keep the last one
   @param {HTMLElement} element
-  @param {number | null} state
   */
-  function updateField(id, value, element, state = null) {
-    const focus = document.activeElement
+  function updateField(element) {
+    const id = element.id
+    let value = `"${element.value}"`
+    if (element.tagName === "TEXTAREA") {
+      value = value.replaceAll("\n", "\\n")
+    }
+    if (element.type === "checkbox") {
+      value = element.checked
+      console.log(element.checked)
+    }
+    if (element.inputMode === "numeric") {
+      value = +element.value
+    }
+
+    const hasFocus = document.activeElement === element
+    const hasSelection = element.selectionStart === 0
+    if (!hasFocus && hasSelection) {
+      element.setSelectionRange(0, 0)
+    }
 
     root.appendChild(element)
     const { pos, input } = analysis.map.find(it => it.id === id)
@@ -248,8 +229,11 @@ async function main() {
     const inputLine = lines[input.line].replaceAll(/input\(state:\d,id:/g, "input(id:")
     const beforeInput = inputLine.slice(0, input.character + 1)
     const afterInput = inputLine.slice(input.character + 1)
-    const defaultState = focus === element ? INPUT_STATE.focused : INPUT_STATE.neutral
-    lines[input.line] = `${beforeInput}state:${state ?? defaultState},${afterInput}`
+    let state = 0
+    hasFocus && (state = 1)
+    hasSelection && (state = 2)
+    element.inputMode === "numeric" && element.value.endsWith(".") && (state = 3)
+    lines[input.line] = `${beforeInput}state:${state},${afterInput}`
 
     text = lines.join("\n")
     recompile().then(() => {
