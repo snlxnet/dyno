@@ -17,7 +17,7 @@ const typMain = `#import "@preview/dyno:0.1.0": *
 #set text(size: 14pt, font: "DejaVu Sans Mono")
 
 #let number = 0
-#let checkbox = true
+#let checkbox = false
 #let string = "hello"
 #let sel = "first"
 
@@ -27,6 +27,10 @@ const typMain = `#import "@preview/dyno:0.1.0": *
 Number: #input(number) = #number \\
 Check: #input(checkbox) = #checkbox \\
 String: #input(string) = #string \\
+
+#if checkbox [
+  #image("file.svg")
+]
 
 Select: #input(sel) \\
 Selected: #sel-num
@@ -197,6 +201,15 @@ async function main() {
       fields.set(it.id, input)
     }
   })
+
+  window.addEventListener("message", async ({data}) => {
+    if (data?.type === "file") {
+      await compiler.addFile(data.name, data.bytes)
+      await recompile()
+      reinsert()
+    }
+  })
+
   reinsert()
   document.addEventListener("focusin", (e) => {
     if (e.sourceCapabilities) {
