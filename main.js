@@ -156,7 +156,7 @@ async function main() {
     console.log("Running", data)
     const method = data?.method
 
-    if (method === "setFile") {
+    if (method === "write") {
       if (data.name === "main.typ") {
         const source = new TextDecoder().decode(data.bytes)
         const analysis = await prepareTyp(source)
@@ -168,7 +168,6 @@ async function main() {
       }
     } else if (method === "render") {
       await recompile()
-      reinsert()
     }
 
     queue.shift()
@@ -177,7 +176,6 @@ async function main() {
     }
   }
 
-  reinsert()
   document.addEventListener("focusin", (e) => {
     if (e.sourceCapabilities) {
       console.log(e.sourceCapabilities)
@@ -215,7 +213,6 @@ async function main() {
       element.setSelectionRange(0, 0)
     }
 
-    root.appendChild(element)
     const { pos, input } = map.find(it => it.id === id)
     const lines = text.split("\n")
 
@@ -234,7 +231,6 @@ async function main() {
 
     text = lines.join("\n")
     recompile().then(() => {
-      reinsert()
       if (!dontFocus) {
         element.focus()
       }
@@ -271,15 +267,30 @@ async function main() {
 
   async function recompile() {
     await compiler.addSource("main.typ", text)
-    console.log(text)
-    const {pages} = await compiler.compile({
-      main: "main.typ",
-      format: "svg",
-    }).catch(e => console.warn(...e.diagnostics))
 
-    const svg = pages.map(page => page.output).join("\n\n")
-    console.warn(svg.diagnostics)
-    root.innerHTML = svg
+    try {
+      const {pages, diagnostics} = await compiler.compile({
+        main: "main.typ",
+        format: "svg",
+      })
+      const svg = pages.map(page => page.output).join("\n\n")
+
+      if (!svg) {
+        console.log("zero pages")
+        throw new Error()
+      }
+
+      if (diagnostics) {
+        console.warn(...diagnostics)
+      }
+
+      root.innerHTML = svg
+    } catch(e) {
+      console.warn(e)
+      e.diagnostics.forEach(err => console.error(`${err.line}:${err.column} ${err.message}\nHints: ${err.hints}`))
+    }
+
+    reinsert()
   }
 }
 
