@@ -142,8 +142,21 @@ async function main() {
   const root = document.getElementById("root")
   await recompile()
 
+  const queue = []
   window.addEventListener("message", async ({data}) => {
-    if (data?.type === "file") {
+    console.log("Queued", data.method)
+    queue.push(data)
+    if (queue.length === 1) {
+      processMessage()
+    }
+  })
+
+  async function processMessage() {
+    const data = queue[0]
+    console.log("Running", data)
+    const method = data?.method
+
+    if (method === "setFile") {
       if (data.name === "main.typ") {
         const source = new TextDecoder().decode(data.bytes)
         const analysis = await prepareTyp(source)
@@ -153,10 +166,16 @@ async function main() {
       } else {
         await compiler.addFile(data.name, data.bytes)
       }
+    } else if (method === "render") {
       await recompile()
       reinsert()
     }
-  })
+
+    queue.shift()
+    if (queue.length) {
+      processMessage()
+    }
+  }
 
   reinsert()
   document.addEventListener("focusin", (e) => {

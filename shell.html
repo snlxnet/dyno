@@ -30,7 +30,8 @@
         }
 
         const bytes = await f.bytes()
-        inner.contentWindow.postMessage({type: "file", name: f.name, bytes})
+        inner.contentWindow.postMessage({method: "setFile", name: f.name, bytes})
+        inner.contentWindow.postMessage({method: "render"})
       }
     </script>
   </body>
