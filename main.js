@@ -126,17 +126,19 @@ async function main() {
     "LibertinusSerif-Regular.otf": "Liberation Serif",
     "DejaVuSansMono.ttf": "DejaVu Sans Mono",
   }
-  await compiler.addFonts(
-    ...Object.entries(fontNames).map(
-      async ([file, name]) => {
-        const data = new Uint8Array(await (await fetch(`${fontsCdn}/${file}`)).arrayBuffer())
-        const font = new FontFace(name, data)
-        await font.load()
-        document.fonts.add(font)
-        return data
-      }
-    ),
-  );
+  await Promise.all(Object.entries(fontNames).map(([f, name]) => addFont(name, `${fontsCdn}/${f}`)))
+
+  /**
+  @param {string} name The name of the font, like in `#set text(font: "...")`
+  @param {string} path The URL of the font file, ends in `.ttf` or `.otf`
+  */
+  async function addFont(name, url) {
+    const data = new Uint8Array(await (await fetch(url)).arrayBuffer())
+    const font = new FontFace(name, data)
+    await font.load()
+    document.fonts.add(font)
+    await compiler.addFonts(data);
+  }
 
   await compiler.addSource("lib.typ", typLib)
 
