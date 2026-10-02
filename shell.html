@@ -35,6 +35,8 @@
           inner.contentWindow.postMessage({method: "font", name, url})
         }))
 
+        inner.contentWindow.postMessage({method: "font", name: "Departure Mono", url: "/dx/Departure Mono.otf"})
+
         const index = await fetch("/index.typ")
         const bytes = await index.bytes()
         inner.contentWindow.postMessage({method: "write", name: "index.typ", bytes})
