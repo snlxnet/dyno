@@ -3,7 +3,6 @@ import { createTypstCompiler } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0
 import { createWebWorker } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/worker/browser.js";
 
 const typstCdn = "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist";
-const fontsCdn = "https://cdn.jsdelivr.net/npm/@typst-wasm/fonts@1.0.0/dist/files";
 const workerEntry = `${typstCdn}/worker/web-worker.js`;
 const workerUrl = URL.createObjectURL(
   new Blob([`import ${JSON.stringify(workerEntry)};`], {
@@ -121,13 +120,6 @@ async function main() {
     },
   });
 
-  const fontNames = {
-    "NewCMMath-Regular.otf": "New Computer Modern Math",
-    "LibertinusSerif-Regular.otf": "Liberation Serif",
-    "DejaVuSansMono.ttf": "DejaVu Sans Mono",
-  }
-  await Promise.all(Object.entries(fontNames).map(([f, name]) => addFont(name, `${fontsCdn}/${f}`)))
-
   /**
   @param {string} name The name of the font, like in `#set text(font: "...")`
   @param {string} path The URL of the font file, ends in `.ttf` or `.otf`
@@ -174,6 +166,8 @@ async function main() {
         mainFile = data.name
       }
       await recompile()
+    } else if (method === "font") {
+      await addFont(data.name, data.url)
     }
 
     queue.shift()

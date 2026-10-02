@@ -30,6 +30,17 @@
         }
 
         const bytes = await f.bytes()
+
+        const fontNames = {
+          "NewCMMath-Regular.otf": "New Computer Modern Math",
+          "LibertinusSerif-Regular.otf": "Liberation Serif",
+          "DejaVuSansMono.ttf": "DejaVu Sans Mono",
+        }
+        await Promise.all(Object.entries(fontNames).map(([f, name]) => {
+          const url = `https://cdn.jsdelivr.net/npm/@typst-wasm/fonts@1.0.0/dist/files/${f}`
+          inner.contentWindow.postMessage({method: "font", name, url})
+        }))
+
         inner.contentWindow.postMessage({method: "write", name: f.name, bytes})
         inner.contentWindow.postMessage({method: "render", name: "index.typ"})
       }
