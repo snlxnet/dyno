@@ -17,7 +17,7 @@ const typMain = `#import "@preview/dyno:0.1.0": *
 #set text(size: 14pt, font: "DejaVu Sans Mono")
 
 #let number = 0
-#let checkbox = true
+#let checkbox = false
 #let string = "hello"
 #let sel = "first"
 
@@ -28,10 +28,14 @@ Number: #input(number) = #number \\
 Check: #input(checkbox) = #checkbox \\
 String: #input(string) = #string \\
 
+#if checkbox [
+  #image("file.svg")
+]
+
 Select: #input(sel) \\
 Selected: #sel-num
 
-#for i in range(number) {
+#for i in range(int(number)) {
   box(rect())
 }
 `
@@ -40,10 +44,14 @@ const typLib = `
 #let input(
   body,
   id: "noid",
+  state: 0,
 ) = context {
+  let border = if state == 0 { gray } else if state == 2 { red } else { lime }
+  let point = if state == 3 [.] else []
+
   let val = if type(body) == bool {
     if body [ on ] else [ off ]
-  } else [#body]
+  } else [#body#point]
 
   let data = json.encode((id: id, size: text.size), pretty: false)
   let flexify(align) = {
@@ -61,7 +69,7 @@ const typLib = `
   let inset = 2mm
   let inset-string = json.encode(inset * 0.75).slice(1, -1)
 
-  [#box(inset: inset, stroke: 1pt+lime, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + tracking + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string)]
+  [#box(inset: inset, stroke: 1pt+border, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + tracking + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string)]
 }`
 
 main()
@@ -130,6 +138,8 @@ async function main() {
   // Insert inputs
   const fields = new Map()
   analysis.map.forEach(it => {
+    const type = typeof it.value
+
     if (it.options) {
       const select = document.createElement("select")
       select.id = it.id
@@ -140,47 +150,127 @@ async function main() {
         option.textContent = value
         select.appendChild(option)
       })
-
-      select.oninput = () => updateField(it.id, select.value, select)
+      select.value = it.value
+      select.oninput = () => updateField(select)
 
       fields.set(it.id, select)
+    } else if (type === "string") {
+      const text = document.createElement("textarea")
+      text.id = it.id
+      text.innerHTML = it.value
+      text.onkeydown = (e) => e.stopPropagation()
+
+      text.oninput = () => {
+        updateField(text)
+
+        const isSingleLine = text.value.split("\n").length === 1
+        text.style.overflow = isSingleLine ? "hidden" : "auto"
+      }
+
+      fields.set(it.id, text)
     } else {
       const input = document.createElement("input")
-      const type = typeof it.value
       input.id = it.id
       input.value = it.value
-      input.onkeydown = (e) => e.stopPropagation()
+      const selectAll = () => input.setSelectionRange(0, input.value.length)
+      const selectEnd = () => input.setSelectionRange(input.value.length, input.value.length)
 
       if (type === "boolean") {
         input.type = "checkbox"
         input.checked = it.value
-        input.oninput = () => updateField(it.id, input.checked, input)
+        input.oninput = () => updateField(input)
       } else if (type === "number") {
-        input.type = "number"
-        input.oninput = () => updateField(it.id, +input.value, input)
-      } else {
-        input.oninput = () => updateField(it.id, input.value, input)
+        input.inputMode = "numeric"
+        input.oninput = () => {
+          input.value = input.value.replace(/[.,]+/, ".").replaceAll(/[^0-9.,]/g, "")
+          selectEnd()
+          updateField(input)
+        }
+        input.onkeydown = (event) => {
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault()
+            event.shiftKey ? selectAll() : selectEnd()
+            updateField(input)
+          }
+          event.stopPropagation()
+        }
+        input.onmousedown = () => selectEnd()
+        input.onfocus = (e) => e.sourceCapabilities && selectAll()
       }
 
       fields.set(it.id, input)
     }
   })
+
+  window.addEventListener("message", async ({data}) => {
+    if (data?.type === "file") {
+      await compiler.addFile(data.name, data.bytes)
+      await recompile()
+      reinsert()
+    }
+  })
+
   reinsert()
+  document.addEventListener("focusin", (e) => {
+    if (e.sourceCapabilities) {
+      console.log(e.sourceCapabilities)
+      updateField(e.target)
+    }
+  })
+  document.addEventListener("focusout", (e) => {
+    if (e.sourceCapabilities) {
+      console.log(e)
+      updateField(e.target, true)
+    }
+  })
 
   /**
-  @param {string} id
-  @param {string | number | boolean} value
   @param {HTMLElement} element
+  @param {boolean} dontFocus
   */
-  function updateField(id, value, element) {
+  function updateField(element, dontFocus = false) {
+    const id = element.id
+    let value = `"${element.value}"`
+    if (element.tagName === "TEXTAREA") {
+      value = value.replaceAll("\n", "\\n")
+    }
+    if (element.type === "checkbox") {
+      value = element.checked
+      console.log(element.checked)
+    }
+    if (element.inputMode === "numeric") {
+      value = +element.value
+    }
+
+    const hasFocus = document.activeElement === element
+    const hasSelection = element.tagName !== "TEXTAREA" && element.selectionStart === 0
+    if (!hasFocus && hasSelection) {
+      element.setSelectionRange(0, 0)
+    }
+
     root.appendChild(element)
-    const { pos } = analysis.map.find(it => it.id === id)
+    const { pos, input } = analysis.map.find(it => it.id === id)
     const lines = text.split("\n")
-    lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + `= ${JSON.stringify(value)}`
+
+    if (value !== null) {
+      lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + "=" + value
+    }
+
+    const inputLine = lines[input.line].replaceAll(/input\(state:\d,id:/g, "input(id:")
+    const beforeInput = inputLine.slice(0, input.character + 1)
+    const afterInput = inputLine.slice(input.character + 1)
+    let state = 1
+    hasSelection && (state = 2)
+    hasFocus || (state = 0)
+    element.inputMode === "numeric" && element.value.endsWith(".") && (state = 3)
+    lines[input.line] = `${beforeInput}state:${state},${afterInput}`
+
     text = lines.join("\n")
     recompile().then(() => {
       reinsert()
-      element.focus()
+      if (!dontFocus) {
+        element.focus()
+      }
     })
   }
 
@@ -197,10 +287,15 @@ async function main() {
       field.style.fontSize = fontSize + "pt"
       field.style.fontFamily = fontFamily
       field.style.letterSpacing = tracking
-      field.style.caretColor = color
       field.style.textAlign = textAlign
       field.style.alignItems = alignItems
       field.style.padding = inset
+
+      if (field.tagName === "TEXTAREA") {
+        field.style.color = color
+        const typstText = element.parentElement.querySelectorAll("g")
+        // typstText.forEach(it => it.remove())
+      }
 
       element.appendChild(field)
       element.onclick = field.focus

@@ -69,7 +69,7 @@ export async function analyze(text) {
     const value = JSON.parse(valueString)
     const options = await getOptions(lsp, lines, variable)
 
-    return options.length ? { id, value, options, pos: variable.end } : { id, value, pos: variable.end }
+    return options.length ? { id, value, options, pos: variable.end, input } : { id, value, pos: variable.end, input }
   })
 
   const result = await Promise.all(map)
