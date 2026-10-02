@@ -109,6 +109,7 @@ async function prepareTyp(text) {
 async function main() {
   let {text, map} = await prepareTyp(typMain)
   let fields = mkFields(map, updateField)
+  let mainFile = "main.typ"
   
   const compiler = await createTypstCompiler({
     backend: "auto",
@@ -157,7 +158,7 @@ async function main() {
     const method = data?.method
 
     if (method === "write") {
-      if (data.name === "main.typ") {
+      if (data.name.endsWith(".typ")) {
         const source = new TextDecoder().decode(data.bytes)
         const analysis = await prepareTyp(source)
         text = analysis.text
@@ -167,6 +168,9 @@ async function main() {
         await compiler.addFile(data.name, data.bytes)
       }
     } else if (method === "render") {
+      if (data.name) {
+        mainFile = data.name
+      }
       await recompile()
     }
 
@@ -266,11 +270,11 @@ async function main() {
   }
 
   async function recompile() {
-    await compiler.addSource("main.typ", text)
+    await compiler.addSource(mainFile, text)
 
     try {
       const {pages, diagnostics} = await compiler.compile({
-        main: "main.typ",
+        main: mainFile,
         format: "svg",
       })
       const svg = pages.map(page => page.output).join("\n\n")

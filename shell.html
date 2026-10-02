@@ -31,7 +31,7 @@
 
         const bytes = await f.bytes()
         inner.contentWindow.postMessage({method: "write", name: f.name, bytes})
-        inner.contentWindow.postMessage({method: "render"})
+        inner.contentWindow.postMessage({method: "render", name: "index.typ"})
       }
     </script>
   </body>
