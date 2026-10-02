@@ -1,4 +1,4 @@
-Status: Trying to use in production & working on docs
+Status: Rebuilding from scratch, new one will look like `index.typ`
 
 ## Usage
 
