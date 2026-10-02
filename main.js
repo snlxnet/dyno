@@ -42,9 +42,12 @@ const typLib = `
   id: "noid",
   state: 0,
 ) = context {
+  let border = if state == 0 { gray } else if state == 2 { red } else { lime }
+  let point = if state == 3 [.] else []
+
   let val = if type(body) == bool {
     if body [ on ] else [ off ]
-  } else [#state;#body]
+  } else [#body#point]
 
   let data = json.encode((id: id, size: text.size), pretty: false)
   let flexify(align) = {
@@ -62,7 +65,7 @@ const typLib = `
   let inset = 2mm
   let inset-string = json.encode(inset * 0.75).slice(1, -1)
 
-  [#box(inset: inset, stroke: 1pt+lime, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + tracking + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string)]
+  [#box(inset: inset, stroke: 1pt+border, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + tracking + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string)]
 }`
 
 main()
@@ -183,6 +186,7 @@ async function main() {
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
             event.preventDefault()
             event.shiftKey ? selectAll() : selectEnd()
+            updateField(input)
           }
           event.stopPropagation()
         }
@@ -196,9 +200,7 @@ async function main() {
   reinsert()
   document.addEventListener("focusin", (e) => {
     if (e.sourceCapabilities) {
-      if (e.target.type === "checkbox") {
-        e.target.checked = !e.target.checked
-      }
+      console.log(e.sourceCapabilities)
       updateField(e.target)
     }
   })
