@@ -10,35 +10,6 @@ const workerUrl = URL.createObjectURL(
   }),
 );
 
-const typMain = `#import "@preview/dyno:0.1.0": *
-#import "@preview/yap:0.1.0": *
-
-#set text(size: 14pt, font: "DejaVu Sans Mono")
-
-#let number = 0
-#let checkbox = false
-#let string = "hello"
-#let sel = "first"
-
-#let sel-num = if sel == "first" { 1 } else if sel == "second" { 2
-} else if sel == "third" { 3 }
-
-Number: #input(number) = #number \\
-Check: #input(checkbox) = #checkbox \\
-String: #input(string) = #string \\
-
-#if checkbox [
-  #image("file.svg")
-]
-
-Select: #input(sel) \\
-Selected: #sel-num
-
-#for i in range(int(number)) {
-  box(rect())
-}
-`
-
 const typLib = `
 #let input(
   body,
@@ -97,18 +68,15 @@ function getLabel(label) {
 
 async function prepareTyp(text) {
   const analysis  = await analyze(text)
-  console.log(analysis.map)
 
   return {
     map: analysis.map,
-    text: analysis.text.replace("@preview/dyno:0.1.0", "lib.typ")
+    text: analysis.text.replace("@preview/dyno:0.1.0", "dyno.typ")
   }
 }
 
 async function main() {
-  let {text, map} = await prepareTyp(typMain)
-  let fields = mkFields(map, updateField)
-  let mainFile = "main.typ"
+  let text, map, fields, mainFile
   
   const compiler = await createTypstCompiler({
     backend: "auto",
@@ -132,10 +100,9 @@ async function main() {
     await compiler.addFonts(data);
   }
 
-  await compiler.addSource("lib.typ", typLib)
+  await compiler.addSource("dyno.typ", typLib)
 
   const root = document.getElementById("root")
-  await recompile()
 
   const queue = []
   window.addEventListener("message", async ({data}) => {
