@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test outer shell</title>
+    <style>
+      iframe {
+        width: 100%;
+        height: 80vh;
+        border: 1px solid black;
+        border-radius: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe src="/" id="inner">
+    </iframe>
+
+    File
+    <input type="file" id="binfile">
+
+    <script>
+      inner.onload = main
+
+      async function main() {
+        const fontNames = {
+          "NewCMMath-Regular.otf": "New Computer Modern Math",
+          "LibertinusSerif-Regular.otf": "Liberation Serif",
+          "DejaVuSansMono.ttf": "DejaVu Sans Mono",
+        }
+        await Promise.all(Object.entries(fontNames).map(([f, name]) => {
+          const url = `https://cdn.jsdelivr.net/npm/@typst-wasm/fonts@1.0.0/dist/files/${f}`
+          inner.contentWindow.postMessage({method: "font", name, url})
+        }))
+
+        inner.contentWindow.postMessage({method: "font", name: "Departure Mono", url: "/dx/Departure Mono.otf"})
+
+        const index = await fetch("/index.typ")
+        const bytes = await index.bytes()
+        inner.contentWindow.postMessage({method: "write", name: "index.typ", bytes})
+        inner.contentWindow.postMessage({method: "render", name: "index.typ"})
+      }
+      
+      binfile.oninput = async () => {
+        const f = binfile.files[0]
+
+        if (!f) {
+          return
+        }
+
+        const bytes = await f.bytes()
+
+        inner.contentWindow.postMessage({method: "write", name: f.name, bytes})
+        inner.contentWindow.postMessage({method: "render", name: "index.typ"})
+      }
+    </script>
+  </body>
+</html>
