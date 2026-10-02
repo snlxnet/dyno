@@ -96,12 +96,19 @@ function getLabel(label) {
   return foreign;
 }
 
-async function main() {
-  const analysis  = await analyze(typMain)
+async function prepareTyp(text) {
+  const analysis  = await analyze(text)
   console.log(analysis.map)
 
-  // Render
-  let text = analysis.text.replace("@preview/dyno:0.1.0", "lib.typ")
+  return {
+    map: analysis.map,
+    text: analysis.text.replace("@preview/dyno:0.1.0", "lib.typ")
+  }
+}
+
+async function main() {
+  let {text, map} = await prepareTyp(typMain)
+  let fields = mkFields(map, updateField)
   
   const compiler = await createTypstCompiler({
     backend: "auto",
@@ -135,76 +142,17 @@ async function main() {
   const root = document.getElementById("root")
   await recompile()
 
-  // Insert inputs
-  const fields = new Map()
-  analysis.map.forEach(it => {
-    const type = typeof it.value
-
-    if (it.options) {
-      const select = document.createElement("select")
-      select.id = it.id
-
-      it.options.forEach(value => {
-        const option = document.createElement("option")
-        option.value = value
-        option.textContent = value
-        select.appendChild(option)
-      })
-      select.value = it.value
-      select.oninput = () => updateField(select)
-
-      fields.set(it.id, select)
-    } else if (type === "string") {
-      const text = document.createElement("textarea")
-      text.id = it.id
-      text.innerHTML = it.value
-      text.onkeydown = (e) => e.stopPropagation()
-
-      text.oninput = () => {
-        updateField(text)
-
-        const isSingleLine = text.value.split("\n").length === 1
-        text.style.overflow = isSingleLine ? "hidden" : "auto"
-      }
-
-      fields.set(it.id, text)
-    } else {
-      const input = document.createElement("input")
-      input.id = it.id
-      input.value = it.value
-      const selectAll = () => input.setSelectionRange(0, input.value.length)
-      const selectEnd = () => input.setSelectionRange(input.value.length, input.value.length)
-
-      if (type === "boolean") {
-        input.type = "checkbox"
-        input.checked = it.value
-        input.oninput = () => updateField(input)
-      } else if (type === "number") {
-        input.inputMode = "numeric"
-        input.oninput = () => {
-          input.value = input.value.replace(/[.,]+/, ".").replaceAll(/[^0-9.,]/g, "")
-          selectEnd()
-          updateField(input)
-        }
-        input.onkeydown = (event) => {
-          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-            event.preventDefault()
-            event.shiftKey ? selectAll() : selectEnd()
-            updateField(input)
-          }
-          event.stopPropagation()
-        }
-        input.onmousedown = () => selectEnd()
-        input.onfocus = (e) => e.sourceCapabilities && selectAll()
-      }
-
-      fields.set(it.id, input)
-    }
-  })
-
   window.addEventListener("message", async ({data}) => {
     if (data?.type === "file") {
-      await compiler.addFile(data.name, data.bytes)
+      if (data.name === "main.typ") {
+        const source = new TextDecoder().decode(data.bytes)
+        const analysis = await prepareTyp(source)
+        text = analysis.text
+        map = analysis.map
+        fields = mkFields(map, updateField)
+      } else {
+        await compiler.addFile(data.name, data.bytes)
+      }
       await recompile()
       reinsert()
     }
@@ -249,7 +197,7 @@ async function main() {
     }
 
     root.appendChild(element)
-    const { pos, input } = analysis.map.find(it => it.id === id)
+    const { pos, input } = map.find(it => it.id === id)
     const lines = text.split("\n")
 
     if (value !== null) {
@@ -316,3 +264,73 @@ async function main() {
   }
 }
 
+function mkFields(map, updateField) {
+  const fields = new Map()
+
+  map.forEach(it => {
+    const type = typeof it.value
+
+    if (it.options) {
+      const select = document.createElement("select")
+      select.id = it.id
+
+      it.options.forEach(value => {
+        const option = document.createElement("option")
+        option.value = value
+        option.textContent = value
+        select.appendChild(option)
+      })
+      select.value = it.value
+      select.oninput = () => updateField(select)
+
+      fields.set(it.id, select)
+    } else if (type === "string") {
+      const text = document.createElement("textarea")
+      text.id = it.id
+      text.innerHTML = it.value
+      text.onkeydown = (e) => e.stopPropagation()
+
+      text.oninput = () => {
+        updateField(text)
+
+        const isSingleLine = text.value.split("\n").length === 1
+        text.style.overflow = isSingleLine ? "hidden" : "auto"
+      }
+
+      fields.set(it.id, text)
+    } else {
+      const input = document.createElement("input")
+      input.id = it.id
+      input.value = it.value
+      const selectAll = () => input.setSelectionRange(0, input.value.length)
+      const selectEnd = () => input.setSelectionRange(input.value.length, input.value.length)
+
+      if (type === "boolean") {
+        input.type = "checkbox"
+        input.checked = it.value
+        input.oninput = () => updateField(input)
+      } else if (type === "number") {
+        input.inputMode = "numeric"
+        input.oninput = () => {
+          input.value = input.value.replace(/[.,]+/, ".").replaceAll(/[^0-9.,]/g, "")
+          selectEnd()
+          updateField(input)
+        }
+        input.onkeydown = (event) => {
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault()
+            event.shiftKey ? selectAll() : selectEnd()
+            updateField(input)
+          }
+          event.stopPropagation()
+        }
+        input.onmousedown = () => selectEnd()
+        input.onfocus = (e) => e.sourceCapabilities && selectAll()
+      }
+
+      fields.set(it.id, input)
+    }
+  })
+
+  return fields
+}

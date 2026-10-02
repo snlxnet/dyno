@@ -29,11 +29,6 @@
           return
         }
 
-        if (f.name.endsWith(".typ")) {
-          // todo
-          return
-        }
-
         const bytes = await f.bytes()
         inner.contentWindow.postMessage({type: "file", name: f.name, bytes})
       }
