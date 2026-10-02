@@ -22,15 +22,9 @@
     <input type="file" id="binfile">
 
     <script>
-      binfile.oninput = async () => {
-        const f = binfile.files[0]
+      inner.onload = main
 
-        if (!f) {
-          return
-        }
-
-        const bytes = await f.bytes()
-
+      async function main() {
         const fontNames = {
           "NewCMMath-Regular.otf": "New Computer Modern Math",
           "LibertinusSerif-Regular.otf": "Liberation Serif",
@@ -40,6 +34,21 @@
           const url = `https://cdn.jsdelivr.net/npm/@typst-wasm/fonts@1.0.0/dist/files/${f}`
           inner.contentWindow.postMessage({method: "font", name, url})
         }))
+
+        const index = await fetch("/index.typ")
+        const bytes = await index.bytes()
+        inner.contentWindow.postMessage({method: "write", name: "index.typ", bytes})
+        inner.contentWindow.postMessage({method: "render", name: "index.typ"})
+      }
+      
+      binfile.oninput = async () => {
+        const f = binfile.files[0]
+
+        if (!f) {
+          return
+        }
+
+        const bytes = await f.bytes()
 
         inner.contentWindow.postMessage({method: "write", name: f.name, bytes})
         inner.contentWindow.postMessage({method: "render", name: "index.typ"})

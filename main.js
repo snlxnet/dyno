@@ -75,9 +75,7 @@ async function prepareTyp(text) {
   }
 }
 
-async function main() {
-  let text, map, fields, mainFile
-  
+async function loadCompiler() {
   const compiler = await createTypstCompiler({
     backend: "auto",
     worker: () => createWebWorker(workerUrl),
@@ -88,6 +86,14 @@ async function main() {
     },
   });
 
+  await compiler.addSource("dyno.typ", typLib)
+
+  return compiler
+}
+
+async function main() {
+  let text, map, fields, mainFile, compiler
+  
   /**
   @param {string} name The name of the font, like in `#set text(font: "...")`
   @param {string} path The URL of the font file, ends in `.ttf` or `.otf`
@@ -100,11 +106,9 @@ async function main() {
     await compiler.addFonts(data);
   }
 
-  await compiler.addSource("dyno.typ", typLib)
-
   const root = document.getElementById("root")
 
-  const queue = []
+  const queue = [{ method: "init" }]
   window.addEventListener("message", async ({data}) => {
     console.log("Queued", data.method)
     queue.push(data)
@@ -112,13 +116,16 @@ async function main() {
       processMessage()
     }
   })
+  processMessage()
 
   async function processMessage() {
     const data = queue[0]
     console.log("Running", data)
     const method = data?.method
 
-    if (method === "write") {
+    if (method === "init") {
+      compiler = await loadCompiler()
+    } else if (method === "write") {
       if (data.name.endsWith(".typ")) {
         const source = new TextDecoder().decode(data.bytes)
         const analysis = await prepareTyp(source)
