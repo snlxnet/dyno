@@ -13,6 +13,7 @@
         devShell = with pkgs; mkShell {
           buildInputs = [
             nodejs_24
+            typescript-language-server
             wget
           ];
           shellHook = ''
