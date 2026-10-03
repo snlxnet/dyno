@@ -3,12 +3,6 @@ import { createTypstCompiler } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0
 import { createWebWorker } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/worker/browser.js";
 
 const typstCdn = "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist";
-const workerEntry = `${typstCdn}/worker/web-worker.js`;
-const workerUrl = URL.createObjectURL(
-  new Blob([`import ${JSON.stringify(workerEntry)};`], {
-    type: "text/javascript",
-  }),
-);
 
 const typLib = `
 #let input(
@@ -76,6 +70,15 @@ async function prepareTyp(text) {
 }
 
 async function loadCompiler() {
+  loader.textContent = "Loading the compiler..."
+
+  const workerEntry = `${typstCdn}/worker/web-worker.js`;
+  const workerUrl = URL.createObjectURL(
+    new Blob([`import ${JSON.stringify(workerEntry)};`], {
+      type: "text/javascript",
+    }),
+  );
+
   const compiler = await createTypstCompiler({
     backend: "auto",
     worker: () => createWebWorker(workerUrl),
@@ -87,6 +90,8 @@ async function loadCompiler() {
   });
 
   await compiler.addSource("dyno.typ", typLib)
+
+  loader.textContent = "dyno is ready"
 
   return compiler
 }
