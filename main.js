@@ -1,40 +1,6 @@
 import { analyze } from "./analyze.js"
-import { createTypstCompiler } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/+esm";
-import { createWebWorker } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/worker/browser.js";
-
-const typstCdn = "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist";
-
-const typLib = `
-#let input(
-  body,
-  id: "noid",
-  state: 0,
-) = context {
-  let border = if state == 0 { gray } else if state == 2 { red } else { lime }
-  let point = if state == 3 [.] else []
-
-  let val = if type(body) == bool {
-    if body [ on ] else [ off ]
-  } else [#body#point]
-
-  let data = json.encode((id: id, size: text.size), pretty: false)
-  let flexify(align) = {
-    if align == start or align == top or align == left {
-      "flex-start"
-    } else if align == end or align == bottom or align == right {
-      "flex-end"
-    } else {
-      "center"
-    }
-  }
-
-  let tracking = json.encode(text.tracking).slice(1, -1)
-  let text-align = json.encode(align.alignment.x).slice(1, -1) + ";" + flexify(align.alignment.y)
-  let inset = 2mm
-  let inset-string = json.encode(inset * 0.75).slice(1, -1)
-
-  [#box(inset: inset, stroke: 1pt+border, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + tracking + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string)]
-}`
+import { loadCompiler } from "./typst.js";
+import { createQueue } from "./queue.js"
 
 main()
 
@@ -69,34 +35,8 @@ async function prepareTyp(text) {
   }
 }
 
-async function loadCompiler() {
-  loader.textContent = "Loading the compiler..."
-
-  const workerEntry = `${typstCdn}/worker/web-worker.js`;
-  const workerUrl = URL.createObjectURL(
-    new Blob([`import ${JSON.stringify(workerEntry)};`], {
-      type: "text/javascript",
-    }),
-  );
-
-  const compiler = await createTypstCompiler({
-    backend: "auto",
-    worker: () => createWebWorker(workerUrl),
-    coreModules: {
-      "engine.core.wasm": WebAssembly.compileStreaming(fetch(`${typstCdn}/engine/engine.core.wasm`)),
-      "engine.core2.wasm": WebAssembly.compileStreaming(fetch(`${typstCdn}/engine/engine.core2.wasm`)),
-      "engine.core3.wasm": WebAssembly.compileStreaming(fetch(`${typstCdn}/engine/engine.core3.wasm`)),
-    },
-  });
-
-  await compiler.addSource("dyno.typ", typLib)
-
-  loader.textContent = "dyno is ready"
-
-  return compiler
-}
-
 async function main() {
+  const loader = document.getElementById("loader")
   let text, map, fields, mainFile, compiler
   
   /**
@@ -113,23 +53,20 @@ async function main() {
 
   const root = document.getElementById("root")
 
-  const queue = [{ method: "init" }]
-  window.addEventListener("message", async ({data}) => {
-    console.log("Queued", data.method)
-    queue.push(data)
-    if (queue.length === 1) {
-      processMessage()
-    }
-  })
-  processMessage()
+  const queueCommand = createQueue(processMessage)
+  queueCommand({ method: "init" })
+  window.addEventListener("message", ({data}) => queueCommand(data))
 
-  async function processMessage() {
-    const data = queue[0]
-    console.log("Running", data)
+  const queueRender = createQueue(recompile)
+  async function render() {
+    return new Promise(resolve => queueRender(resolve))
+  }
+
+  async function processMessage(data) {
     const method = data?.method
 
     if (method === "init") {
-      compiler = await loadCompiler()
+      compiler = await loadCompiler(loader)
     } else if (method === "write") {
       if (data.name.endsWith(".typ")) {
         const source = new TextDecoder().decode(data.bytes)
@@ -144,15 +81,12 @@ async function main() {
       if (data.name) {
         mainFile = data.name
       }
-      await recompile()
+      await render()
     } else if (method === "font") {
       await addFont(data.name, data.url)
     }
 
-    queue.shift()
-    if (queue.length) {
-      processMessage()
-    }
+    console.log("done")
   }
 
   document.addEventListener("focusin", (e) => {
@@ -209,7 +143,7 @@ async function main() {
     lines[input.line] = `${beforeInput}state:${state},${afterInput}`
 
     text = lines.join("\n")
-    recompile().then(() => {
+    render().then(() => {
       if (!dontFocus) {
         element.focus()
       }
@@ -244,7 +178,7 @@ async function main() {
     })
   }
 
-  async function recompile() {
+  async function recompile(onCompleted) {
     await compiler.addSource(mainFile, text)
 
     try {
@@ -271,6 +205,7 @@ async function main() {
 
     reinsert()
     reload() // call yap
+    onCompleted?.()
   }
 }
 
