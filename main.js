@@ -2,7 +2,6 @@ import { analyze } from "./analyze.js"
 import { loadCompiler } from "./typst.js";
 import { createQueue } from "./queue.js"
 
-let isBusy = false
 main()
 
 function getLabel(label) {
@@ -58,6 +57,11 @@ async function main() {
   queueCommand({ method: "init" })
   window.addEventListener("message", ({data}) => queueCommand(data))
 
+  const queueRender = createQueue(recompile)
+  async function render() {
+    return new Promise(resolve => queueRender(resolve))
+  }
+
   async function processMessage(data) {
     const method = data?.method
 
@@ -77,7 +81,7 @@ async function main() {
       if (data.name) {
         mainFile = data.name
       }
-      await recompile()
+      await render()
     } else if (method === "font") {
       await addFont(data.name, data.url)
     }
@@ -139,7 +143,7 @@ async function main() {
     lines[input.line] = `${beforeInput}state:${state},${afterInput}`
 
     text = lines.join("\n")
-    recompile().then(() => {
+    render().then(() => {
       if (!dontFocus) {
         element.focus()
       }
@@ -174,10 +178,7 @@ async function main() {
     })
   }
 
-  async function recompile() {
-    if (isBusy) return
-    isBusy = true
-
+  async function recompile(onCompleted) {
     await compiler.addSource(mainFile, text)
 
     try {
@@ -204,8 +205,7 @@ async function main() {
 
     reinsert()
     reload() // call yap
-
-    isBusy = false
+    onCompleted?.()
   }
 }
 
