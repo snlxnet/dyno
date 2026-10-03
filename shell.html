@@ -10,10 +10,14 @@
       content="Test outer shell for dyno"
     />
     <style>
+      html {
+        background: #222;
+        color: #eee;
+      }
       iframe {
         width: 100%;
         height: 80vh;
-        border: 1px solid black;
+        border: 1px solid #eee;
         border-radius: 1em;
       }
     </style>
@@ -41,7 +45,7 @@
 
         inner.contentWindow.postMessage({method: "font", name: "Departure Mono", url: "/dx/Departure Mono.otf"})
 
-        const index = await fetch("/index.typ")
+        const index = await fetch("/index.typ", { cache: "no-cache" })
         const bytes = await index.bytes()
         inner.contentWindow.postMessage({method: "write", name: "index.typ", bytes})
         inner.contentWindow.postMessage({method: "render", name: "index.typ"})
