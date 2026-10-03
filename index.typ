@@ -23,6 +23,9 @@ String: #input(string) = #string \
 Select: #input(sel) \
 Selected: #sel-num
 
+#notes[This is a notes block from yap]
+
+#pagebreak()
 #for i in range(int(number)) {
   box(rect())
 }
