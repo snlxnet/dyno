@@ -14,7 +14,7 @@
 
 Number: #input(number) = #number \
 Check: #input(checkbox) = #checkbox \
-String: #input(string) = #string \
+Notes: #input(string)
 
 #if checkbox [
   #image("file.svg")
@@ -23,6 +23,11 @@ String: #input(string) = #string \
 Select: #input(sel) \
 Selected: #sel-num
 
+#if string != "" {
+  notes(eval(string, mode: "markup"))
+}
+
+#pagebreak()
 #for i in range(int(number)) {
   box(rect())
 }
