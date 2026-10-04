@@ -47,8 +47,8 @@
 
         const index = await fetch("/index.typ", { cache: "no-cache" })
         const bytes = await index.bytes()
-        inner.contentWindow.postMessage({method: "write", name: "index.typ", bytes})
-        inner.contentWindow.postMessage({method: "render", name: "index.typ"})
+        inner.contentWindow.postMessage({method: "setMain", name: "index.typ", bytes})
+        inner.contentWindow.postMessage({method: "render"})
       }
       
       binfile.oninput = async () => {

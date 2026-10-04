@@ -9,32 +9,37 @@ body, #root {
   min-height: 100svh;
   background: #1e1e2e;
 }
+body.disable-yap,
+body.disable-yap #root {
+  background: transparent;
+  flex-direction: column;
+}
 body::backdrop {
   display: none;
 }
-body.book-mode #root {
+body.book-mode:not(.disable-yap) #root {
   flex-wrap: wrap;
   gap: 1em;
 }
-svg {
+body:not(.disable-yap) svg {
   width: 100%;
   height: unset;
   max-height: 100svh;
   display: none;
 }
-body.book-mode svg {
+body:not(.disable-yap) svg.visible {
+  display: block;
+}
+body.book-mode:not(.disable-yap) svg {
   height: 100svh;
   width: unset;
   display: block;
 }
 @media (min-aspect-ratio: 16/9) {
-  svg {
+  body:not(.disable-yap) svg {
     width: unset;
     height: 100svh;
   }
-}
-svg.visible {
-  display: block;
 }
 foreignObject > * {
   width: 100%;
