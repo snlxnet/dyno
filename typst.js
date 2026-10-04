@@ -29,8 +29,8 @@ const dynoSource = `
     text-focused: luma(0%),
     text-selected: luma(50%),
 
-    content-checked: [on],
-    content-unchecked: [off],
+    content-checked: [#sym.checkmark],
+    content-unchecked: [#sym.crossmark],
     content-swap: [#sym.arrow.l.r],
   ),
 )
