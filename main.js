@@ -108,9 +108,6 @@ async function main() {
   @param {Function} onCompleted
   */
   function updateField(element, dontFocus = false, onCompleted = undefined) {
-    if (element.id.startsWith("sw-")) return
-    console.log("uhm hi")
-
     const id = element.id
     let value = `"${element.value}"`
     if (element.tagName === "TEXTAREA") {
@@ -130,21 +127,25 @@ async function main() {
       element.setSelectionRange(0, 0)
     }
 
-    const { pos, input } = map.find(it => it.id === id)
+    const { pos, input, swap } = map.find(it => it.id === id)
     const lines = text.split("\n")
 
-    if (value !== null) {
+    if (input && value !== null) {
       lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + "=" + value
     }
 
-    const inputLine = lines[input.line].replaceAll(/input\(state:\d,id:/g, "input(id:")
-    const beforeInput = inputLine.slice(0, input.character + 1)
-    const afterInput = inputLine.slice(input.character + 1)
+    const fn = input || swap
+
+    const line = lines[fn.line]
+      .replaceAll(/input\(state:\d,id:/g, "input(id:")
+      .replaceAll(/swap\(state:\d,id:/g, "swap(id:")
+    const before = line.slice(0, fn.character + 1)
+    const after = line.slice(fn.character + 1)
     let state = 1
     hasSelection && (state = 2)
     hasFocus || (state = 0)
     element.inputMode === "numeric" && element.value.endsWith(".") && (state = 3)
-    lines[input.line] = `${beforeInput}state:${state},${afterInput}`
+    lines[fn.line] = `${before}state:${state},${after}`
 
     text = lines.join("\n")
     render().then(() => {
@@ -231,18 +232,13 @@ function mkFields(map, updateField) {
         const copied = a.value
         a.value = b.value
         b.value = copied
-        console.log({a: a.value, b: b.value})
 
         updateField(a, true)
         updateField(b, true, () => button.focus())
       }
 
       fields.set(it.id, button)
-
-      return
-    }
-
-    if (it.options) {
+    } else if (it.options) {
       const select = document.createElement("select")
       select.id = it.id
 
