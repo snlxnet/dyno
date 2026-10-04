@@ -223,7 +223,7 @@ async function main() {
     }
 
     reinsert()
-    // reload() // call yap
+    reload() // call yap
     onCompleted?.()
   }
 }
