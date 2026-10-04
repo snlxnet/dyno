@@ -3,9 +3,12 @@
   (
     width: auto,
     height: auto,
-    baseline: auto,
+    width-swap: auto,
+    height-swap: auto,
+    baseline: 0pt,
 
     inset: 2mm,
+    outset: 0mm,
     radius: 0mm,
 
     fill: rgb("#12312300"),
@@ -16,13 +19,13 @@
     stroke-focused: 1pt + green,
     stroke-selected: 1pt + gray,
 
-    text: none, // inherit
-    text-focused: none, // inherit
-    text-selected: gray,
+    text: luma(0%),
+    text-focused: luma(0%),
+    text-selected: luma(50%),
 
-    content-checked: [onn],
-    content-unchecked: [of],
-    content-swap: [swap],
+    content-checked: [on],
+    content-unchecked: [off],
+    content-swap: [#sym.arrow.l.r],
   ),
 )
 
@@ -33,18 +36,18 @@
 ) = context {
   let theme = input-theme.get()
 
-  let (stroke, fill) = if state == 0 {
-    (theme.stroke, theme.fill)
+  let (text-color, stroke, fill) = if state == 0 {
+    (theme.text, theme.stroke, theme.fill)
   } else if state == 2 {
-    (theme.stroke-selected, theme.fill-selected)
+    (theme.text-focused, theme.stroke-selected, theme.fill-selected)
   } else {
-    (theme.stroke-focused, theme.fill-focused)
+    (theme.text-selected, theme.stroke-focused, theme.fill-focused)
   }
 
   let point = if state == 3 [.] else []
 
   let val = if type(body) == bool {
-    if body [ on ] else [ off ]
+    if body { theme.content-checked } else { theme.content-unchecked }
   } else [#body#point]
 
   let data = json.encode((id: id, size: text.size), pretty: false)
@@ -64,7 +67,16 @@
   let inset-string = json.encode(inset * 0.75).slice(1, -1)
   let lbl = id + ";" + str(text.size.pt()) + ";" + text.font + ";" + tracking + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string
 
-  [#box(baseline: theme.baseline, inset: inset, stroke: stroke, fill: fill, val)#label(lbl)]
+  [#box(
+    width: theme.width,
+    baseline: theme.baseline,
+    inset: inset,
+    outset: theme.outset,
+    radius: theme.radius,
+    stroke: stroke,
+    fill: fill,
+    text(fill: text-color, val),
+  )#label(lbl)]
 }
 
 #let swap(
@@ -82,5 +94,15 @@
     (theme.stroke-focused, theme.fill-focused)
   }
 
-  [#box(baseline: theme.baseline, inset: theme.inset, stroke: stroke, fill: fill, [swap])#label(id + ";")]
+  [#box(
+    width: theme.width-swap,
+    height: theme.height-swap,
+    baseline: theme.baseline,
+    inset: theme.inset,
+    outset: theme.outset,
+    radius: theme.radius,
+    stroke: stroke,
+    fill: fill,
+    theme.content-swap,
+  )#label(id + ";")]
 }
