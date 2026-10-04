@@ -31,7 +31,7 @@ async function prepareTyp(text) {
 
   return {
     map: analysis.map,
-    text: analysis.text.replace("@preview/dyno:0.1.0", "dyno.typ")
+    text: analysis.text.replace("@local/dyno:0.1.0", "dyno.typ")
   }
 }
 

@@ -38,7 +38,7 @@ async function initLsp() {
 export async function analyze(text) {
   const lines = text.split("\n")
 
-  const dynoImportIdx = lines.findIndex(line => line.includes('"@preview/dyno'))
+  const dynoImportIdx = lines.findIndex(line => line.includes('"@local/dyno'))
   const initialDynoImport = lines[dynoImportIdx]
   lines[dynoImportIdx] = "#let input(..args) = []"
 
