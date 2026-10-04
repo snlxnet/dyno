@@ -94,15 +94,22 @@ async function main() {
     console.log("done")
   }
 
+  let removingElement = false
+  let addingElement = false
   document.addEventListener("focusin", (e) => {
-    if (e.sourceCapabilities) {
-      console.log(e.sourceCapabilities)
+    if (!addingElement) {
       updateField(e.target)
+      if (!navigator.maxTouchPoints) {
+        e.target.onmouseup = (up) => {
+          up.preventDefault()
+          e.target.onmouseup = undefined
+          e.target.click()
+        }
+      }
     }
   })
   document.addEventListener("focusout", (e) => {
-    if (e.sourceCapabilities) {
-      console.log(e)
+    if (!removingElement) {
       updateField(e.target, true)
     }
   })
@@ -153,9 +160,13 @@ async function main() {
     lines[fn.line] = `${before}state:${state},${after}`
 
     text = lines.join("\n")
+    removingElement = true
     render().then(() => {
+      removingElement = false
       if (!dontFocus) {
+        addingElement = true
         element.focus()
+        addingElement = false
       }
       onCompleted?.()
     })
