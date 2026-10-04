@@ -236,7 +236,7 @@ function mkFields(map, updateField) {
       const button = document.createElement("button")
       button.id = it.id
 
-      button.onclick = () => {
+      button.onmousedown = () => {
         const a = fields.get(it.a.end.line + ":" + it.a.end.character)
         const b = fields.get(it.b.end.line + ":" + it.b.end.character)
 
@@ -244,9 +244,11 @@ function mkFields(map, updateField) {
         a.value = b.value
         b.value = copied
 
+        document.activeElement?.blur()
         updateField(a, true)
         updateField(b, true, () => button.focus())
       }
+      button.onkeyup = (e) => e.code === "Space" && button.onmousedown()
 
       fields.set(it.id, button)
     } else if (it.options) {
@@ -289,9 +291,9 @@ function mkFields(map, updateField) {
         input.value = it.value
         input.onmousedown = () => {
           input.value = !(input.value === "true")
+          document.activeElement?.blur()
           updateField(input, false, () => input.focus())
         }
-        input.ontouchstart = () => input.onmousedown()
         input.onkeyup = (e) => e.code === "Space" && input.onmousedown()
       } else if (type === "number") {
         input.inputMode = "numeric"
