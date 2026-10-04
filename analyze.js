@@ -40,7 +40,7 @@ export async function analyze(text) {
 
   const dynoImportIdx = lines.findIndex(line => line.includes('"@local/dyno'))
   const initialDynoImport = lines[dynoImportIdx]
-  lines[dynoImportIdx] = "#let input(..args) = []"
+  lines[dynoImportIdx] = "#let input(..args) = []; #let swap(..args) = []"
 
   const lsp = await initLsp()
   const uri = "file:///main.typ"
@@ -53,7 +53,25 @@ export async function analyze(text) {
     }
   })
 
-  const inputs = await getInputs(lsp, lines)
+  const inputMap = await analyzeInputs(lsp, lines)
+  await lsp.free()
+
+  lines[dynoImportIdx] = initialDynoImport
+
+  console.log(inputMap)
+
+  return {
+    map: inputMap,
+    text: lines.join("\n")
+  }
+}
+
+/**
+@param {any} lsp
+@param {string[]} lines GETS MUTATED
+*/
+async function analyzeInputs(lsp, lines) {
+  const inputs = await getInputs(lsp, lines, "input")
 
   const variables = await getVariables(lsp, inputs)
 
@@ -69,28 +87,28 @@ export async function analyze(text) {
     const value = JSON.parse(valueString)
     const options = await getOptions(lsp, lines, variable)
 
-    return options.length ? { id, value, options, pos: variable.end, input } : { id, value, pos: variable.end, input }
+    return {
+      type: "input",
+      id,
+      value,
+      options: options.length ? options : undefined,
+      pos: variable.end,
+      input,
+    }
   })
 
-  const result = await Promise.all(map)
-  await lsp.free()
-
-  lines[dynoImportIdx] = initialDynoImport
-
-  return {
-    map: result,
-    text: lines.join("\n")
-  }
+  return Promise.all(map)
 }
 
 /**
 @param {any} lsp
 @param {string[]} lines
+@param {string} fn the desired typst function (input, swap, url)
 @returns {Promise<{line: number, character: number}[]>}
 */
-async function getInputs(lsp, lines) {
+async function getInputs(lsp, lines, fn) {
   const maybeInputs = await Promise.all(lines
-    .flatMap((line, idx) => line.matchAll("input").map(match => ({line: idx, character: match.index})).toArray())
+    .flatMap((line, idx) => line.matchAll(fn).map(match => ({line: idx, character: match.index})).toArray())
     .map(({line, character}) => selectVariable(lsp, line, character))
   )
 
