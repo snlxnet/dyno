@@ -1,4 +1,5 @@
-#import "@local/dyno:0.1.0": *
+// #import "@local/dyno:0.1.0": *
+#import "dyno.typ": *
 #import "@preview/yap:0.1.0": *
 
 #set text(size: 14pt, font: "Departure Mono")
