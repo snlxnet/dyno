@@ -31,7 +31,7 @@ async function prepareTyp(text) {
 
   return {
     map: analysis.map,
-    text: analysis.text.replace("@preview/dyno:0.1.0", "dyno.typ")
+    text: analysis.text.replace("@local/dyno:0.1.0", "dyno.typ")
   }
 }
 
@@ -105,8 +105,12 @@ async function main() {
   /**
   @param {HTMLElement} element
   @param {boolean} dontFocus
+  @param {Function} onCompleted
   */
-  function updateField(element, dontFocus = false) {
+  function updateField(element, dontFocus = false, onCompleted = undefined) {
+    if (element.id.startsWith("sw-")) return
+    console.log("uhm hi")
+
     const id = element.id
     let value = `"${element.value}"`
     if (element.tagName === "TEXTAREA") {
@@ -147,6 +151,7 @@ async function main() {
       if (!dontFocus) {
         element.focus()
       }
+      onCompleted?.()
     })
   }
 
@@ -214,6 +219,28 @@ function mkFields(map, updateField) {
 
   map.forEach(it => {
     const type = typeof it.value
+
+    if (it.kind === "swap") {
+      const button = document.createElement("button")
+      button.id = it.id
+
+      button.onclick = () => {
+        const a = fields.get(it.a.end.line + ":" + it.a.end.character)
+        const b = fields.get(it.b.end.line + ":" + it.b.end.character)
+
+        const copied = a.value
+        a.value = b.value
+        b.value = copied
+        console.log({a: a.value, b: b.value})
+
+        updateField(a, true)
+        updateField(b, true, () => button.focus())
+      }
+
+      fields.set(it.id, button)
+
+      return
+    }
 
     if (it.options) {
       const select = document.createElement("select")
