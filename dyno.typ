@@ -39,9 +39,9 @@
   let (text-color, stroke, fill) = if state == 0 {
     (theme.text, theme.stroke, theme.fill)
   } else if state == 2 {
-    (theme.text-focused, theme.stroke-selected, theme.fill-selected)
+    (theme.text-selected, theme.stroke-selected, theme.fill-selected)
   } else {
-    (theme.text-selected, theme.stroke-focused, theme.fill-focused)
+    (theme.text-focused, theme.stroke-focused, theme.fill-focused)
   }
 
   let point = if state == 3 [.] else []
