@@ -123,9 +123,8 @@ async function main() {
     if (element.tagName === "TEXTAREA") {
       value = value.replaceAll("\n", "\\n")
     }
-    if (element.type === "checkbox") {
-      value = element.checked
-      console.log(element.checked)
+    if (element.type === "button") {
+      value = element.value
     }
     if (element.inputMode === "numeric") {
       value = +element.value
@@ -193,7 +192,6 @@ async function main() {
       const proxy = document.createElement("label")
       proxy.appendChild(field)
       element.appendChild(proxy)
-      console.log(element)
     })
   }
 
@@ -287,9 +285,14 @@ function mkFields(map, updateField) {
       const selectEnd = () => input.setSelectionRange(input.value.length, input.value.length)
 
       if (type === "boolean") {
-        input.type = "checkbox"
-        input.checked = it.value
-        input.oninput = () => updateField(input)
+        input.type = "button"
+        input.value = it.value
+        input.onmousedown = () => {
+          input.value = !(input.value === "true")
+          updateField(input, false, () => input.focus())
+        }
+        input.ontouchstart = () => input.onmousedown()
+        input.onkeyup = (e) => e.code === "Space" && input.onmousedown()
       } else if (type === "number") {
         input.inputMode = "numeric"
         input.oninput = () => {
