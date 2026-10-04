@@ -190,8 +190,10 @@ async function main() {
         typstText.forEach(it => it.remove())
       }
 
-      element.appendChild(field)
-      element.onclick = field.focus
+      const proxy = document.createElement("label")
+      proxy.appendChild(field)
+      element.appendChild(proxy)
+      console.log(element)
     })
   }
 
@@ -221,7 +223,7 @@ async function main() {
     }
 
     reinsert()
-    reload() // call yap
+    // reload() // call yap
     onCompleted?.()
   }
 }
