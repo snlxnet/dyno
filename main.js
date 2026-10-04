@@ -67,20 +67,19 @@ async function main() {
 
     if (method === "init") {
       compiler = await loadCompiler(loader)
-    } else if (method === "write") {
-      if (data.name.endsWith(".typ")) {
-        const source = new TextDecoder().decode(data.bytes)
-        const analysis = await prepareTyp(source)
-        text = analysis.text
-        map = analysis.map
-        fields = mkFields(map, updateField)
-      } else {
-        await compiler.addFile(data.name, data.bytes)
-      }
-    } else if (method === "render") {
+    } else if (method === "setMain") {
       if (data.name) {
         mainFile = data.name
       }
+
+      const source = new TextDecoder().decode(data.bytes)
+      const analysis = await prepareTyp(source)
+      text = analysis.text
+      map = analysis.map
+      fields = mkFields(map, updateField)
+    } else if (method === "write") {
+      await compiler.addFile(data.name, data.bytes)
+    } else if (method === "render") {
       await render()
     } else if (method === "font") {
       await addFont(data.name, data.url)
