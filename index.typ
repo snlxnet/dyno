@@ -16,6 +16,12 @@ Number: #input(number) = #number \
 Check: #input(checkbox) = #checkbox \
 Notes: #input(string)
 
+#let a = 10
+#let b = 20
+#input(a)
+#swap(a, b)
+#input(b)
+
 #if checkbox [
   #image("file.svg")
 ]

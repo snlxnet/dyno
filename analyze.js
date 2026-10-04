@@ -54,11 +54,12 @@ export async function analyze(text) {
   })
 
   const inputMap = await analyzeInputs(lsp, lines)
+  const swapMap = await analyzeSwaps(lsp, lines)
   await lsp.free()
 
   lines[dynoImportIdx] = initialDynoImport
 
-  console.log(inputMap)
+  console.log(swapMap)
 
   return {
     map: inputMap,
@@ -71,9 +72,9 @@ export async function analyze(text) {
 @param {string[]} lines GETS MUTATED
 */
 async function analyzeInputs(lsp, lines) {
-  const inputs = await getInputs(lsp, lines, "input")
+  const inputs = await getTypstFn(lsp, lines, "input")
 
-  const variables = await getVariables(lsp, inputs)
+  const variables = await getInputVariables(lsp, inputs)
 
   const map = variables.map(async ({input, variable}) => {
     const id = variable.end.line + ":" + variable.end.character
@@ -102,11 +103,23 @@ async function analyzeInputs(lsp, lines) {
 
 /**
 @param {any} lsp
+@param {string[]} lines GETS MUTATED
+*/
+async function analyzeSwaps(lsp, lines) {
+  const swapButtons = await getTypstFn(lsp, lines, "swap")
+
+  const variables = await getSwapVariables(lsp, swapButtons, lines)
+
+  return variables.map(v => ({...v, type: "swap"}))
+}
+
+/**
+@param {any} lsp
 @param {string[]} lines
 @param {string} fn the desired typst function (input, swap, url)
 @returns {Promise<{line: number, character: number}[]>}
 */
-async function getInputs(lsp, lines, fn) {
+async function getTypstFn(lsp, lines, fn) {
   const maybeInputs = await Promise.all(lines
     .flatMap((line, idx) => line.matchAll(fn).map(match => ({line: idx, character: match.index})).toArray())
     .map(({line, character}) => selectVariable(lsp, line, character))
@@ -120,16 +133,32 @@ async function getInputs(lsp, lines, fn) {
 
 /**
 @param {any} lsp
-@param {string[]} lines
+@param {any} inputs
 @returns {Promise<{input: {line: number, character: number}, variable: {start: {line: number, character: number}, end: {line: number, character: number}}}[]>}
 */
-async function getVariables(lsp, inputs) {
+async function getInputVariables(lsp, inputs) {
   const maybeVariables = await Promise.all(inputs.map(async (input) => ({
     variable: await definition(lsp, input.line, input.character + 2),
     input,
   })))
 
   return maybeVariables.filter(it => it.variable !== null)
+}
+
+/**
+@param {any} lsp
+@param {any} swapButtons
+@param {string[]} lines
+@returns {Promise<{swap: {line: number, character: number}, a: {start: {line: number, character: number}, end: {line: number, character: number}}, b: {start: {line: number, character: number}, end: {line: number, character: number}}}[]>}
+*/
+async function getSwapVariables(lsp, swapButtons, lines) {
+  const maybeVariables = await Promise.all(swapButtons.map(async (swap) => ({
+    a: await definition(lsp, swap.line, swap.character + 2),
+    b: await definition(lsp, swap.line, lines[swap.line].slice(swap.character).match(/\)/).index+swap.character - 1),
+    swap,
+  })))
+
+  return maybeVariables.filter(it => it.swap !== null && it.a && it.b)
 }
 
 /**

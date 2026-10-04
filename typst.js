@@ -33,6 +33,14 @@ const dynoSource = `
   let inset-string = json.encode(inset * 0.75).slice(1, -1)
 
   [#box(inset: inset, stroke: 1pt+border, val)#label(id + ";" + str(text.size.pt()) + ";" + text.font + ";" + tracking + ";" + text.fill.to-hex() + ";" + text-align + ";" + inset-string)]
+}
+
+#let swap(
+  id,
+  state: 0,
+  ..args,
+) = context {
+  [#box(stroke: 1mm + blue)[swap]]
 }`
 
 
