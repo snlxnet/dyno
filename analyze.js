@@ -59,10 +59,11 @@ export async function analyze(text) {
 
   lines[dynoImportIdx] = initialDynoImport
 
-  console.log(swapMap)
-
   return {
-    map: inputMap,
+    map: [
+      ...inputMap,
+      ...swapMap,
+    ],
     text: lines.join("\n")
   }
 }
@@ -89,7 +90,7 @@ async function analyzeInputs(lsp, lines) {
     const options = await getOptions(lsp, lines, variable)
 
     return {
-      type: "input",
+      kind: "input",
       id,
       value,
       options: options.length ? options : undefined,
@@ -110,7 +111,20 @@ async function analyzeSwaps(lsp, lines) {
 
   const variables = await getSwapVariables(lsp, swapButtons, lines)
 
-  return variables.map(v => ({...v, type: "swap"}))
+  return variables.map(v => {
+    const id = `sw-${v.a.end.line}:${v.a.end.character}-${v.b.end.line}:${v.b.end.character}`
+
+    const line = lines[v.swap.line]
+    const start = line.slice(0, v.swap.character + 1)
+    const end = line.slice(v.swap.character + 1)
+    lines[v.swap.line] = start + 'id: "' + id + '", ' + end
+
+    return {
+      ...v,
+      id,
+      kind: "swap",
+    }
+  })
 }
 
 /**

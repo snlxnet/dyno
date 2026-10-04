@@ -36,11 +36,11 @@ const dynoSource = `
 }
 
 #let swap(
-  id,
-  state: 0,
   ..args,
+  id: "noid",
+  state: 0,
 ) = context {
-  [#box(stroke: 1mm + blue)[swap]]
+  [#box(stroke: 1mm + blue, [swap])#label(id + ";")]
 }`
 
 
