@@ -94,15 +94,16 @@ async function main() {
     console.log("done")
   }
 
+  let ignoreFocusOn = null
   document.addEventListener("focusin", (e) => {
-    if (e.sourceCapabilities) {
-      console.log(e.sourceCapabilities)
+    if (ignoreFocusOn !== e.target) {
+      console.log("FOCUS")
       updateField(e.target)
     }
   })
   document.addEventListener("focusout", (e) => {
-    if (e.sourceCapabilities) {
-      console.log(e)
+    if (ignoreFocusOn !== e.target) {
+      console.log("BLUR")
       updateField(e.target, true)
     }
   })
@@ -113,6 +114,10 @@ async function main() {
   @param {Function} onCompleted
   */
   function updateField(element, dontFocus = false, onCompleted = undefined) {
+    if (!dontFocus) {
+      ignoreFocusOn = element
+    }
+
     const id = element.id
     let value = `"${element.value}"`
     if (element.tagName === "TEXTAREA") {
@@ -156,6 +161,7 @@ async function main() {
     render().then(() => {
       if (!dontFocus) {
         element.focus()
+        ignoreFocusOn = null
       }
       onCompleted?.()
     })
