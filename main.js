@@ -77,6 +77,12 @@ async function main() {
       text = analysis.text
       map = analysis.map
       fields = mkFields(map, updateField)
+
+      if (text.includes(`"@preview/yap:`)) {
+        document.body.classList.remove("disable-yap")
+      } else {
+        document.body.classList.add("disable-yap")
+      }
     } else if (method === "write") {
       await compiler.addFile(data.name, data.bytes)
     } else if (method === "render") {
