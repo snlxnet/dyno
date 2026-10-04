@@ -94,15 +94,16 @@ async function main() {
     console.log("done")
   }
 
+  let ignoreFocusOn = null
   document.addEventListener("focusin", (e) => {
-    if (e.sourceCapabilities) {
-      console.log(e.sourceCapabilities)
+    if (ignoreFocusOn !== e.target) {
+      console.log("FOCUS")
       updateField(e.target)
     }
   })
   document.addEventListener("focusout", (e) => {
-    if (e.sourceCapabilities) {
-      console.log(e)
+    if (ignoreFocusOn !== e.target) {
+      console.log("BLUR")
       updateField(e.target, true)
     }
   })
@@ -113,14 +114,17 @@ async function main() {
   @param {Function} onCompleted
   */
   function updateField(element, dontFocus = false, onCompleted = undefined) {
+    if (!dontFocus) {
+      ignoreFocusOn = element
+    }
+
     const id = element.id
     let value = `"${element.value}"`
     if (element.tagName === "TEXTAREA") {
       value = value.replaceAll("\n", "\\n")
     }
-    if (element.type === "checkbox") {
-      value = element.checked
-      console.log(element.checked)
+    if (element.type === "button") {
+      value = element.value
     }
     if (element.inputMode === "numeric") {
       value = +element.value
@@ -156,6 +160,7 @@ async function main() {
     render().then(() => {
       if (!dontFocus) {
         element.focus()
+        ignoreFocusOn = null
       }
       onCompleted?.()
     })
@@ -184,8 +189,9 @@ async function main() {
         typstText.forEach(it => it.remove())
       }
 
-      element.appendChild(field)
-      element.onclick = field.focus
+      const proxy = document.createElement("label")
+      proxy.appendChild(field)
+      element.appendChild(proxy)
     })
   }
 
@@ -230,7 +236,7 @@ function mkFields(map, updateField) {
       const button = document.createElement("button")
       button.id = it.id
 
-      button.onclick = () => {
+      button.onmousedown = () => {
         const a = fields.get(it.a.end.line + ":" + it.a.end.character)
         const b = fields.get(it.b.end.line + ":" + it.b.end.character)
 
@@ -238,9 +244,11 @@ function mkFields(map, updateField) {
         a.value = b.value
         b.value = copied
 
+        document.activeElement?.blur()
         updateField(a, true)
         updateField(b, true, () => button.focus())
       }
+      button.onkeyup = (e) => e.code === "Space" && button.onmousedown()
 
       fields.set(it.id, button)
     } else if (it.options) {
@@ -279,9 +287,14 @@ function mkFields(map, updateField) {
       const selectEnd = () => input.setSelectionRange(input.value.length, input.value.length)
 
       if (type === "boolean") {
-        input.type = "checkbox"
-        input.checked = it.value
-        input.oninput = () => updateField(input)
+        input.type = "button"
+        input.value = it.value
+        input.onmousedown = () => {
+          input.value = !(input.value === "true")
+          document.activeElement?.blur()
+          updateField(input, false, () => input.focus())
+        }
+        input.onkeyup = (e) => e.code === "Space" && input.onmousedown()
       } else if (type === "number") {
         input.inputMode = "numeric"
         input.oninput = () => {
