@@ -95,7 +95,14 @@ async function main() {
   }
 
   let ignoreFocusOn = null
+  let isMouseDown = false
+  document.addEventListener("mousedown", () => isMouseDown = true)
+  document.addEventListener("mouseup", () => isMouseDown = false)
   document.addEventListener("focusin", (e) => {
+    if (e.target.tagName === "SELECT" && isMouseDown) {
+      return
+    }
+
     if (ignoreFocusOn !== e.target) {
       console.log("FOCUS")
       updateField(e.target)

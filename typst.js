@@ -1,7 +1,7 @@
-import { createTypstCompiler } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/+esm";
-import { createWebWorker } from "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/worker/browser.js";
+import { createTypstCompiler } from "/npm/typst.js";
+import { createWebWorker } from "/npm/browser.js";
 
-const typstCdn = "https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist";
+const typstCdn = "/npm";
 
 const dynoSource = `
 #let input-theme = state(
