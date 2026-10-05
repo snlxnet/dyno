@@ -169,6 +169,10 @@ async function main() {
   function reinsert() {
     fields.forEach((field, id) => {
       const element = getLabel(id)
+      if (!element) {
+        console.log(`Field ${id} is hidden`)
+        return
+      }
       element.classList.add("dyno")
 
       const boundsFrame = element.parentElement.getBBox()
