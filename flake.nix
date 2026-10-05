@@ -23,6 +23,25 @@
               mv package tinymist
               rm tinymist-web.tar.gz
             fi
+
+            if [ ! -d "./npm" ]; then
+              mkdir -p npm/engine
+              # cd npm
+              # wget https://registry.npmjs.org/typst-wasm/-/typst-wasm-1.0.0.tgz -O tw.tgz
+              # tar -xaf tw.tgz
+              # rm tw.tgz
+              wget https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/worker/browser.js -O npm/browser.js
+              mv package typst-wasm@1.0.0
+
+              wget https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/+esm -O npm/typst.js
+              wget https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/engine/engine.core.wasm -O npm/engine/engine.core.wasm
+              wget https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/engine/engine.core2.wasm -O npm/engine/engine.core2.wasm
+              wget https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/engine/engine.core3.wasm -O npm/engine/engine.core3.wasm
+
+              # wget https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/+esm -O npm/typst.js
+              wget https://cdn.jsdelivr.net/npm/nanotar@0.2.1/+esm -O npm/nanotar.js
+              sed -i 's#/npm/nanotar@0.2.1/+esm#/npm/nanotar.js#' npm/typst.js
+            fi
           '';
         };
       }
