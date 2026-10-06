@@ -10,27 +10,32 @@
       content="A dynamic runtime for typst"
     />
     <style>
-      html {
-        background: #222;
-        color: #eee;
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
       }
       iframe {
         width: 100%;
-        height: 80vh;
-        border: 1px solid #eee;
-        border-radius: 1em;
+        height: 100vh;
+        border: none;
+        margin: 0;
       }
     </style>
   </head>
   <body>
-    <iframe src="/engine" id="inner">
+    <iframe src="/engine" id="inner" allow-top-navigation>
     </iframe>
 
-    File
-    <input type="file" id="binfile">
-
     <script>
+      const filename = new URLSearchParams(location.search).get("root") || "main.typ"
+
       inner.onload = main
+      window.addEventListener("message", ({data}) => {
+        const { err } = data
+        if (!err) return
+        console.error(`${err.line}:${err.column} ${err.message}\nHints: ${err.hints}`)
+      })
 
       async function main() {
         const fontNames = {
@@ -43,25 +48,12 @@
           inner.contentWindow.postMessage({method: "font", name, url})
         }))
 
-        inner.contentWindow.postMessage({method: "font", name: "Departure Mono", url: "/dx/Departure Mono.otf"})
+        inner.contentWindow.postMessage({method: "font", name: "Departure Mono", url: "/Departure Mono.otf"})
 
-        const index = await fetch("/dx/main.typ", { cache: "no-cache" })
+        const index = await fetch("/" + filename, { cache: "no-cache" })
         const bytes = await index.bytes()
         inner.contentWindow.postMessage({method: "setMain", name: "index.typ", bytes})
         inner.contentWindow.postMessage({method: "render"})
-      }
-      
-      binfile.oninput = async () => {
-        const f = binfile.files[0]
-
-        if (!f) {
-          return
-        }
-
-        const bytes = await f.bytes()
-
-        inner.contentWindow.postMessage({method: "write", name: f.name, bytes})
-        inner.contentWindow.postMessage({method: "render", name: "index.typ"})
       }
     </script>
   </body>

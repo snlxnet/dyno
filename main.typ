@@ -1,8 +1,9 @@
 #import "@local/dyno:0.1.0": input, swap, input-theme
+#import "tabs.typ": tabs
 
 #set page(height: auto, margin: 2em)
-#let answer(expr) = str(expr)
 
+#let answer(expr) = str(expr)
 #let accent = green
 #let neutral = rgb("#ddd")
 #let border = neutral + 0.3mm
@@ -32,6 +33,7 @@
 #let rows = calc.ceil(count / columns)
 #let roll-length = rows * (sticker-h+margin) + 200
 
+#tabs[наклейки]
 #grid(
   columns: 2,
   gutter: 2em,

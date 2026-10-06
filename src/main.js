@@ -90,8 +90,6 @@ async function main() {
     } else if (method === "font") {
       await addFont(data.name, data.url)
     }
-
-    console.log("done")
   }
 
   let ignoreFocusOn = null
@@ -99,18 +97,18 @@ async function main() {
   document.addEventListener("mousedown", () => isMouseDown = true)
   document.addEventListener("mouseup", () => isMouseDown = false)
   document.addEventListener("focusin", (e) => {
+    if (e.target.tagName.toLowerCase() === "a") return
+
     if (e.target.tagName === "SELECT" && isMouseDown) {
       return
     }
 
     if (ignoreFocusOn !== e.target) {
-      console.log("FOCUS")
       updateField(e.target)
     }
   })
   document.addEventListener("focusout", (e) => {
     if (ignoreFocusOn !== e.target) {
-      console.log("BLUR")
       updateField(e.target, true)
     }
   })
@@ -121,6 +119,11 @@ async function main() {
   @param {Function} onCompleted
   */
   function updateField(element, dontFocus = false, onCompleted = undefined) {
+    if (!element.id) {
+      console.warn("Called on no id", element)
+      return
+    }
+
     if (!dontFocus) {
       ignoreFocusOn = element
     }
@@ -200,10 +203,10 @@ async function main() {
         typstText.forEach(it => it.remove())
       }
 
-      const proxy = document.createElement("label")
-      proxy.appendChild(field)
-      element.appendChild(proxy)
+      element.appendChild(field)
     })
+
+    document.querySelectorAll("a").forEach(a => a.setAttribute("target", "_top"))
   }
 
   async function recompile(onCompleted) {
@@ -227,8 +230,11 @@ async function main() {
 
       root.innerHTML = svg
     } catch(e) {
-      console.warn(e)
-      e.diagnostics.forEach(err => console.error(`${err.line}:${err.column} ${err.message}\nHints: ${err.hints}`))
+      e.diagnostics.forEach((err) => {
+        if (window.parent !== window) {
+          window.parent.postMessage({err})
+        }
+      })
     }
 
     reinsert()

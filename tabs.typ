@@ -1,6 +1,6 @@
 #let files = (
   наклейки: "main.typ",
-  поля: "doc.typ",
+  дока: "doc.typ",
 )
 
 #let accent = green
