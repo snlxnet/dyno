@@ -17,14 +17,14 @@
             wget
           ];
           shellHook = ''
-            if [ ! -d "./tinymist" ]; then
+            if [ ! -d "./src/tinymist" ]; then
               wget https://github.com/Myriad-Dreamin/tinymist/releases/download/v0.15.8/tinymist-web.tar.gz
               tar -xf tinymist-web.tar.gz
               mv package tinymist
               rm tinymist-web.tar.gz
             fi
 
-            if [ ! -d "./npm" ]; then
+            if [ ! -d "./src/npm" ]; then
               mkdir -p npm/engine
               wget https://cdn.jsdelivr.net/npm/typst-wasm@1.0.0/dist/worker/browser.js -O npm/browser.js
 
