@@ -227,8 +227,11 @@ async function main() {
 
       root.innerHTML = svg
     } catch(e) {
-      console.warn(e)
-      e.diagnostics.forEach(err => console.error(`${err.line}:${err.column} ${err.message}\nHints: ${err.hints}`))
+      e.diagnostics.forEach((err) => {
+        if (window.parent !== window) {
+          window.parent.postMessage({err})
+        }
+      })
     }
 
     reinsert()
