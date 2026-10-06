@@ -25,6 +25,7 @@ const DYNO = [
   "analyze.js",
   "typst.js",
   "queue.js",
+  "yap.js",
   "npm/browser.js",
   "npm/typst.js",
   "npm/nanotar.js",
