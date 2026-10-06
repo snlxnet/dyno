@@ -1,4 +1,5 @@
 import * as fs from "node:fs";
+import { readdir } from "node:fs/promises";
 import * as http from "node:http";
 import * as path from "node:path";
 
@@ -70,6 +71,13 @@ async function checkExists(base, file) {
 
 http
   .createServer(async (req, res) => {
+    if (req.url === "/api/fonts") {
+      const entries = await readdir(STATIC_PATH)
+      const fonts = entries.filter(name => /\.(otf|ttf)$/.test(name))
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(fonts))
+      return
+    }
     const file = await prepareFile(req.url);
     const statusCode = file.found ? 200 : 404;
     const mimeType = MIME_TYPES[file.ext] || MIME_TYPES.default;
