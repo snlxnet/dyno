@@ -38,16 +38,9 @@
       })
 
       async function main() {
-        const fontNames = {
-          "NewCMMath-Regular.otf": "New Computer Modern Math",
-          "LibertinusSerif-Regular.otf": "Liberation Serif",
-          "DejaVuSansMono.ttf": "DejaVu Sans Mono",
-        }
-        await Promise.all(Object.entries(fontNames).map(([f, name]) => {
-          const url = `https://cdn.jsdelivr.net/npm/@typst-wasm/fonts@1.0.0/dist/files/${f}`
-          inner.contentWindow.postMessage({method: "font", name, url})
-        }))
-
+        inner.contentWindow.postMessage({method: "font", name: "New Computer Modern Math", url: "/NewCMMath-Regular.otf"})
+        inner.contentWindow.postMessage({method: "font", name: "Libertinus Serif", url: "/LibertinusSerif-Regular.otf"})
+        inner.contentWindow.postMessage({method: "font", name: "DejaVu Sans Mono", url: "/DejaVuSansMono.ttf"})
         inner.contentWindow.postMessage({method: "font", name: "Departure Mono", url: "/Departure Mono.otf"})
 
         const index = await fetch("/" + filename, { cache: "no-cache" })
