@@ -1,8 +1,11 @@
 #import "@local/dyno:0.1.0": *
 #import "@preview/yap:0.1.0": *
+#import "tabs.typ": tabs
 
 #set text(size: 14pt, font: "Departure Mono")
-= Index
+
+#tabs[дока]
+= Doc
 
 #let number = 0
 #let checkbox = false

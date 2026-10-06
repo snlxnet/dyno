@@ -28,9 +28,11 @@
     </iframe>
 
     <script>
+      const filename = new URLSearchParams(location.search).get("root") || "main.typ"
+
       inner.onload = main
       window.addEventListener("message", ({data}) => {
-        const {err} = data
+        const { err } = data
         console.error(`${err.line}:${err.column} ${err.message}\nHints: ${err.hints}`)
       })
 
@@ -45,9 +47,9 @@
           inner.contentWindow.postMessage({method: "font", name, url})
         }))
 
-        inner.contentWindow.postMessage({method: "font", name: "Departure Mono", url: "/dx/Departure Mono.otf"})
+        inner.contentWindow.postMessage({method: "font", name: "Departure Mono", url: "/Departure Mono.otf"})
 
-        const index = await fetch("/dx/main.typ", { cache: "no-cache" })
+        const index = await fetch("/" + filename, { cache: "no-cache" })
         const bytes = await index.bytes()
         inner.contentWindow.postMessage({method: "setMain", name: "index.typ", bytes})
         inner.contentWindow.postMessage({method: "render"})
