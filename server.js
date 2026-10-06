@@ -14,25 +14,36 @@ const MIME_TYPES = {
   gif: "image/gif",
   ico: "image/x-icon",
   svg: "image/svg+xml",
+  wasm: "application/wasm",
 };
 
-const STATIC_PATH = path.join(process.cwd(), "./");
+const STATIC_PATH = path.join(process.cwd(), "./").replace(/\/$/, "");
 
 const toBool = [() => true, () => false];
 
 const prepareFile = async (url) => {
-  const urlAsPath = decodeURI(url);
+  const urlAsPath = decodeURI(url.split("?")[0]);
   const paths = [STATIC_PATH, urlAsPath];
-  if (url.endsWith("/")) paths.push("index.html");
-  const filePath = path.join(...paths);
+  if (urlAsPath.endsWith("/")) paths.push("index.html");
+  const filePath = path.join(...paths).replace(/\/$/, "");
   const pathTraversal = !filePath.startsWith(STATIC_PATH);
-  const exists = await fs.promises.access(filePath).then(...toBool);
+  const exists = await checkExists(filePath);
   const found = !pathTraversal && exists;
-  const streamPath = found ? filePath : `${STATIC_PATH}/404.html`;
+  const streamPath = found || `${STATIC_PATH}/404.html`;
   const ext = path.extname(streamPath).substring(1).toLowerCase();
   const stream = fs.createReadStream(streamPath);
   return { found, ext, stream };
 };
+
+async function checkExists(filePath) {
+  const literal = await fs.promises.access(filePath).then(...toBool);
+  if (literal) {
+    return filePath
+  }
+
+  const html = await fs.promises.access(filePath + ".html").then(...toBool);
+  return html ? filePath + ".html" : null
+}
 
 http
   .createServer(async (req, res) => {
