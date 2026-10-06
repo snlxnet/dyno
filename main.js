@@ -90,8 +90,6 @@ async function main() {
     } else if (method === "font") {
       await addFont(data.name, data.url)
     }
-
-    console.log("done")
   }
 
   let ignoreFocusOn = null
@@ -104,13 +102,11 @@ async function main() {
     }
 
     if (ignoreFocusOn !== e.target) {
-      console.log("FOCUS")
       updateField(e.target)
     }
   })
   document.addEventListener("focusout", (e) => {
     if (ignoreFocusOn !== e.target) {
-      console.log("BLUR")
       updateField(e.target, true)
     }
   })
