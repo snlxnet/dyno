@@ -22,6 +22,8 @@ jobs:
           ./deps.sh
           mv src/* .
           rm README.md flake.* deps.sh
+          mkdir api
+          echo '["DejaVu Sans Mono.ttf","Departure Mono.otf","Libertinus Serif.otf","New Computer Modern Math.otf"]' > api/fonts
       - name: upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
