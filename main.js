@@ -200,9 +200,7 @@ async function main() {
         typstText.forEach(it => it.remove())
       }
 
-      const proxy = document.createElement("label")
-      proxy.appendChild(field)
-      element.appendChild(proxy)
+      element.appendChild(field)
     })
   }
 
