@@ -97,6 +97,8 @@ async function main() {
   document.addEventListener("mousedown", () => isMouseDown = true)
   document.addEventListener("mouseup", () => isMouseDown = false)
   document.addEventListener("focusin", (e) => {
+    if (e.target.tagName.toLowerCase() === "a") return
+
     if (e.target.tagName === "SELECT" && isMouseDown) {
       return
     }
@@ -117,6 +119,11 @@ async function main() {
   @param {Function} onCompleted
   */
   function updateField(element, dontFocus = false, onCompleted = undefined) {
+    if (!element.id) {
+      console.warn("Called on no id", element)
+      return
+    }
+
     if (!dontFocus) {
       ignoreFocusOn = element
     }

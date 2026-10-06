@@ -33,6 +33,7 @@
       inner.onload = main
       window.addEventListener("message", ({data}) => {
         const { err } = data
+        if (!err) return
         console.error(`${err.line}:${err.column} ${err.message}\nHints: ${err.hints}`)
       })
 
