@@ -7,7 +7,6 @@ export function createQueue(cb) {
   const queue = []
 
   function push(data) {
-    console.log("Queued", data)
     queue.push(data)
 
     if (queue.length === 1) {
@@ -17,10 +16,8 @@ export function createQueue(cb) {
 
   async function run() {
     const data = queue[0]
-    console.log("Running", data)
 
     await cb(data)
-    console.log("Done", data)
 
     queue.shift()
     if (queue.length) {
