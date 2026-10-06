@@ -17,6 +17,24 @@ const MIME_TYPES = {
   wasm: "application/wasm",
 };
 
+const DYNO = [
+  "index.html",
+  "engine.html",
+  "yap.css",
+  "main.js",
+  "analyze.js",
+  "typst.js",
+  "queue.js",
+  "npm/browser.js",
+  "npm/typst.js",
+  "npm/nanotar.js",
+  "npm/engine/engine.core2.wasm",
+  "npm/engine/engine.core3.wasm",
+  "npm/engine/engine.core.wasm",
+  "tinymist/pkg/tinymist.js",
+  "tinymist/pkg/tinymist_bg.wasm",
+]
+
 const STATIC_PATH = path.join(process.cwd(), "./").replace(/\/$/, "");
 
 const toBool = [() => true, () => false];
@@ -27,7 +45,7 @@ const prepareFile = async (url) => {
   if (urlAsPath.endsWith("/")) paths.push("index.html");
   const filePath = path.join(...paths).replace(/\/$/, "");
   const pathTraversal = !filePath.startsWith(STATIC_PATH);
-  const exists = await checkExists(filePath);
+  const exists = await checkExists(STATIC_PATH, urlAsPath);
   const found = !pathTraversal && exists;
   const streamPath = found || `${STATIC_PATH}/404.html`;
   const ext = path.extname(streamPath).substring(1).toLowerCase();
@@ -35,14 +53,18 @@ const prepareFile = async (url) => {
   return { found, ext, stream };
 };
 
-async function checkExists(filePath) {
-  const literal = await fs.promises.access(filePath).then(...toBool);
-  if (literal) {
-    return filePath
+async function checkExists(base, file) {
+  const lastPart = file.slice(1) || "index.html"
+  if (DYNO.includes(lastPart)) {
+    return path.join(base, "src", lastPart)
   }
-
-  const html = await fs.promises.access(filePath + ".html").then(...toBool);
-  return html ? filePath + ".html" : null
+  if (DYNO.includes(lastPart + ".html")) {
+    return path.join(base, "src", lastPart + ".html")
+  }
+  
+  const p = path.join(base, file)
+  const exists = await fs.promises.access(p).then(...toBool);
+  return exists ? p : null
 }
 
 http
