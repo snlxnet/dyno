@@ -20,6 +20,7 @@ jobs:
       - name: build
         run: |
           ./deps.sh
+          mv src/* .
           rm README.md flake.* deps.sh
       - name: upload artifact
         uses: actions/upload-pages-artifact@v3
