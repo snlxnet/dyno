@@ -109,7 +109,12 @@ async function main() {
   })
   document.addEventListener("focusout", (e) => {
     if (ignoreFocusOn !== e.target) {
-      updateField(e.target, true)
+      updateField(e.target, true, undefined, true)
+      setTimeout(() => {
+        if (document.activeElement === document.body) {
+          render()
+        }
+      }, 100)
     }
   })
 
@@ -118,7 +123,7 @@ async function main() {
   @param {boolean} dontFocus
   @param {Function} onCompleted
   */
-  function updateField(element, dontFocus = false, onCompleted = undefined) {
+  function updateField(element, dontFocus = false, onCompleted = undefined, skipRender = false) {
     if (!element.id) {
       console.warn("Called on no id", element)
       return
@@ -167,6 +172,11 @@ async function main() {
     lines[fn.line] = `${before}state:${state},${after}`
 
     text = lines.join("\n")
+
+    if (skipRender) {
+      return
+    }
+
     render().then(() => {
       if (!dontFocus) {
         element.focus()
@@ -329,6 +339,10 @@ function mkFields(map, updateField) {
         }
         input.onmousedown = () => selectEnd()
         input.onfocus = (e) => e.sourceCapabilities && selectAll()
+        input.onselectionchange = () => {
+          if (input.selectionEnd === input.value.length && (input.selectionStart === 0 || input.selectionStart === input.selectionEnd)) return
+          selectAll()
+        }
       }
 
       fields.set(it.id, input)
