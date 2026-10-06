@@ -205,6 +205,8 @@ async function main() {
 
       element.appendChild(field)
     })
+
+    document.querySelectorAll("a").forEach(a => a.setAttribute("target", "_top"))
   }
 
   async function recompile(onCompleted) {
