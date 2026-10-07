@@ -88,12 +88,13 @@ async function analyzeInputs(lsp, lines) {
     const valueString = lines[variable.end.line].slice(variable.end.character).replace(/\s*=\s/, "")
     const value = JSON.parse(valueString)
     const options = await getOptions(lsp, lines, variable)
+    const hasOptions = options.length && typeof value === "string"
 
     return {
       kind: "input",
       id,
       value,
-      options: options.length ? options : undefined,
+      options: hasOptions ? options : undefined,
       pos: variable.end,
       input,
     }
@@ -192,7 +193,8 @@ async function getOptions(lsp, lines, variable) {
     .filter(it => it !== null)
     .filter(({ line, character }) => lines[line].slice(character).trim().startsWith("=="))
 
-  return mentions.map(({line, character}) => lines[line].slice(character).replace(/\s*==\s"*/, "").split('"', 1)[0])
+  const dupe = mentions.map(({line, character}) => lines[line].slice(character).replace(/\s*==\s"*/, "").split('"', 1)[0])
+  return Array.from(new Set(dupe))
 }
 
 /**
