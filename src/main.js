@@ -26,15 +26,6 @@ function getLabel(label) {
   return foreign;
 }
 
-async function prepareTyp(text) {
-  const analysis  = await analyze(text)
-
-  return {
-    map: analysis.map,
-    text: analysis.text.replace("@local/dyno:0.1.0", "dyno.typ")
-  }
-}
-
 async function main() {
   const loader = document.getElementById("loader")
   let text, map, fields, mainFile, compiler
@@ -73,7 +64,7 @@ async function main() {
       }
 
       const source = new TextDecoder().decode(data.bytes)
-      const analysis = await prepareTyp(source)
+      const analysis = await analyze(source)
       text = analysis.text
       map = analysis.map
       fields = mkFields(map, updateField)
