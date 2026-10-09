@@ -1,4 +1,4 @@
-#import "@local/dyno:0.1.0": *
+#import "dyno.typ": *
 #import "@preview/yap:0.1.0": *
 #import "tabs.typ": tabs
 

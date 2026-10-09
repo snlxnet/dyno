@@ -1,4 +1,4 @@
-#import "@local/dyno:0.1.0": input, swap, input-theme
+#import "dyno.typ": input, swap, input-theme
 #import "tabs.typ": tabs
 
 #set page(height: auto, margin: 2em)
