@@ -106,3 +106,28 @@
     theme.content-swap,
   )#label(id + ";")]
 }
+
+/// Loads the specified URL
+/// And returns the response body.
+///
+/// By default, the response will be read as UTF-8 and returned as a string.
+/// 
+/// If none is returned, either the data is being loaded or the runtime doesn't support this operation.
+///
+/// -> str | bytes | none
+#let url(
+  /// URL to load (HTTP GET)
+  /// -> str
+  url,
+  /// The encoding to read the response body with.
+  /// 
+  /// If set to `none`, the function returns raw bytes.
+  encoding: "utf8",
+  id: "noid"
+) = {
+  if id == "noid" {
+    return none
+  }
+
+  read(id, encoding: encoding)
+}

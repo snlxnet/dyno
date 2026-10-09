@@ -14,6 +14,7 @@
           buildInputs = [
             nodejs_24
             typescript-language-server
+            typst
             wget
           ];
           shellHook = "./deps.sh";
