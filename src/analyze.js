@@ -40,7 +40,7 @@ export async function analyze(text) {
 
   const dynoImportIdx = lines.findIndex(line => line.includes('import "dyno.typ"'))
   const initialDynoImport = lines[dynoImportIdx]
-  lines[dynoImportIdx] = "#let input(..args) = []; #let swap(..args) = []"
+  lines[dynoImportIdx] = "#let input(..args) = []; #let swap(..args) = []; #let url(..args) = []"
 
   const lsp = await initLsp()
   const uri = "file:///main.typ"
@@ -55,6 +55,8 @@ export async function analyze(text) {
 
   const inputMap = await analyzeInputs(lsp, lines)
   const swapMap = await analyzeSwaps(lsp, lines)
+  const urlMap = await analyzeUrls(lsp, lines)
+  console.log(urlMap)
   await lsp.free()
 
   lines[dynoImportIdx] = initialDynoImport
@@ -124,6 +126,33 @@ async function analyzeSwaps(lsp, lines) {
       ...v,
       id,
       kind: "swap",
+    }
+  })
+}
+
+/**
+@param {any} lsp
+@param {string[]} lines GETS MUTATED
+*/
+async function analyzeUrls(lsp, lines) {
+  const urls = await getTypstFn(lsp, lines, "url")
+
+  return urls.map(pos => {
+    const id = `url-${pos.line}-${pos.character}`
+
+    const line = lines[pos.line]
+    const start = line.slice(0, pos.character + 1)
+    const end = line.slice(pos.character + 1)
+    lines[pos.line] = start + 'id: "' + id + '", ' + end
+
+    const args = end.slice(")").at(0)
+    const url = args.split(/\s*,\s*/).find(arg => !arg.includes("encoding:"))
+
+    return {
+      ...pos,
+      id,
+      url,
+      kind: "url",
     }
   })
 }
