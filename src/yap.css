@@ -13,6 +13,7 @@ body.disable-yap,
 body.disable-yap #root {
   background: transparent;
   flex-direction: column;
+  justify-content: flex-start;
 }
 body::backdrop {
   display: none;
