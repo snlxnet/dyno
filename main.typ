@@ -1,4 +1,4 @@
-#import "dyno.typ": input, swap, input-theme
+#import "dyno.typ": input, swap, input-theme, url
 #import "tabs.typ": tabs
 
 #set page(height: auto, margin: 2em)
@@ -77,4 +77,11 @@ Value: #if select == "zero" {
     }
   ]
 })
+
+#let dino = url("https://upload.wikimedia.org/wikipedia/commons/4/49/Anchisaurus2.jpg", encoding: none)
+#if dino == none [
+  Loading...
+] else [
+  #image(dino)
+]
 
