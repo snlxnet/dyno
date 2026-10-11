@@ -172,6 +172,7 @@ async function main() {
     text = lines.join("\n")
 
     if (skipRender) {
+      onCompleted?.()
       return
     }
 
@@ -273,7 +274,7 @@ function mkFields(map, updateField) {
 
         document.activeElement?.blur()
         updateField(a, true, () => {}, true)
-        updateField(b, true, () => button.focus())
+        updateField(b, true, () => button.focus(), true)
       }
       button.onkeyup = (e) => e.code === "Space" && button.onmousedown()
 

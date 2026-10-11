@@ -1,0 +1,5 @@
+#let silver = rgb("#2e2d39")
+#let gray = rgb("#121212")
+#let purple = rgb("#a8a5ff")
+#let red = rgb("#ff8383")
+#let white = rgb("#eee")
