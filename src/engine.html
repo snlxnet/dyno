@@ -38,6 +38,21 @@
         max-width: 100%;
       }
 
+      body:has(#loader-card) {
+        background: #2e2d39;
+        color: #ccc;
+      }
+      #loader {
+        transform-origin: center;
+        transform-box: content-box;
+        animation: spin linear infinite 2s;
+        display: inline !important;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg) }
+        100% { transform: rotate(360deg) }
+      }
+
       input::-webkit-outer-spin-button,
       input::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -110,7 +125,7 @@
     </div>
 
     <div id="root">
-      <p style="color: #cdd6f4" id="loader">Loading dyno...</p>
+      <div id="loader-card"></div>
     </div>
 
     <script src="yap.js"></script>

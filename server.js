@@ -27,6 +27,7 @@ const DYNO = [
   "typst.js",
   "queue.js",
   "yap.js",
+  "card.svg",
   "npm/browser.js",
   "npm/typst.js",
   "npm/nanotar.js",
