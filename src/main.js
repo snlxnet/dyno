@@ -1,4 +1,4 @@
-import { analyze } from "./analyze.js"
+import { analyze, downloadTinymist } from "./analyze.js"
 import { loadCompiler } from "./typst.js";
 import { createQueue } from "./queue.js"
 
@@ -28,7 +28,7 @@ function getLabel(label) {
 
 async function main() {
   const loader = document.getElementById("loader")
-  let text, map, fields, mainFile, compiler
+  let text, map, fields, mainFile, compiler, tinymist
   
   /**
   @param {string} name The name of the font, like in `#set text(font: "...")`
@@ -57,14 +57,17 @@ async function main() {
     const method = data?.method
 
     if (method === "init") {
-      compiler = await loadCompiler(loader)
+      [compiler, tinymist] = await Promise.all([
+        loadCompiler(loader),
+        downloadTinymist(),
+      ])
     } else if (method === "setMain") {
       if (data.name) {
         mainFile = data.name
       }
 
       const source = new TextDecoder().decode(data.bytes)
-      const analysis = await analyze(source)
+      const analysis = await analyze(source, tinymist)
       text = analysis.text
       map = analysis.map
       fields = mkFields(map, updateField)
