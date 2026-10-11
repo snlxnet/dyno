@@ -1,7 +1,7 @@
 #import "dyno.typ": input, swap, input-theme
 
-#set text(font: "Comfortaa", fill: rgb("#ccc"))
-#set page(fill: rgb("#2e2d39"), height: auto)
+#set text(font: "JetBrains Mono")
+#set page(height: auto)
 #set align(horizon)
 
 #let width = "auto"
@@ -58,7 +58,7 @@
   content-swap: eval(content-swp),
 ))
 
-#link("/")[#sym.arrow.l Back]
+#link("/?root=second.typ")[#sym.arrow.l Back]
 
 #columns[
 = Settings

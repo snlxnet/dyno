@@ -75,4 +75,6 @@ Type to make it a presentation:
   #notes(eval(slide-note, mode: "markup"))
 ]
 
+#link("/?root=second.typ")[another demo]
+
 #v(20mm)
