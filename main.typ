@@ -1,5 +1,6 @@
 #import "dyno.typ": *
 #import "colors.typ": *
+#import "yap.typ": notes
 
 #set page(height: auto, margin: 0mm, fill: silver)
 #set text(14pt, font: "Comfortaa", fill: white)
