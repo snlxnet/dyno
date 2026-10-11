@@ -75,14 +75,17 @@ http
     if (req.url === "/api/fonts") {
       const entries = await readdir(STATIC_PATH)
       const fonts = entries.filter(name => /\.(otf|ttf)$/.test(name))
-      res.writeHead(200, { "Content-Type": "application/json" });
+      res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "public, max-age=36000" });
       res.end(JSON.stringify(fonts))
       return
     }
     const file = await prepareFile(req.url);
     const statusCode = file.found ? 200 : 404;
     const mimeType = MIME_TYPES[file.ext] || MIME_TYPES.default;
-    res.writeHead(statusCode, { "Content-Type": mimeType });
+    const cacheControl = !file.found
+      ? "no-store"
+      : "public, max-age=36000";
+    res.writeHead(statusCode, { "Content-Type": mimeType, "Cache-Control": cacheControl });
     file.stream.pipe(res);
     console.log(`${req.method} ${req.url} ${statusCode}`);
   })

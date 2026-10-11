@@ -27,15 +27,15 @@ function getLabel(label) {
 }
 
 async function main() {
-  document.getElementById("loader-card").outerHTML = await (await fetch("/card.svg")).text()
-  let text, map, fields, mainFile, compiler, tinymist
+  document.getElementById("loader-card").outerHTML = await (await fetch("/card.svg", {cache: "force-cache"})).text()
+  let text, map, fields, mainFile, compiler
   
   /**
   @param {string} name The name of the font, like in `#set text(font: "...")`
   @param {string} path The URL of the font file, ends in `.ttf` or `.otf`
   */
   async function addFont(name, url) {
-    const data = new Uint8Array(await (await fetch(url)).arrayBuffer())
+    const data = new Uint8Array(await (await fetch(url, {cache: "force-cache"})).arrayBuffer())
     const font = new FontFace(name, data)
     await font.load()
     document.fonts.add(font)
@@ -60,7 +60,7 @@ async function main() {
     const method = data?.method
 
     if (method === "init") {
-      [compiler, tinymist] = await Promise.all([
+      [compiler] = await Promise.all([
         loadCompiler(),
         downloadTinymist(),
       ])
@@ -71,7 +71,7 @@ async function main() {
       }
 
       const source = new TextDecoder().decode(data.bytes)
-      const analysis = await analyze(source, tinymist)
+      const analysis = await analyze(source)
       text = analysis.text
       map = analysis.map
       fields = mkFields(map, updateField)
