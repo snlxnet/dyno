@@ -3,8 +3,6 @@ import { readdir } from "node:fs/promises";
 import * as http from "node:http";
 import * as path from "node:path";
 
-const PORT = 8000;
-
 const MIME_TYPES = {
   default: "application/octet-stream",
   html: "text/html; charset=UTF-8",
@@ -38,7 +36,8 @@ const DYNO = [
   "tinymist/pkg/tinymist_bg.wasm",
 ]
 
-const STATIC_PATH = path.join(process.cwd(), "./").replace(/\/$/, "");
+const STATIC_PATH = (process.env.DYNO_DIR || process.cwd()).replace(/\/$/, "");
+const PORT = +(process.env.DYNO_PORT || 3000);
 
 const toBool = [() => true, () => false];
 
