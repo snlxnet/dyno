@@ -237,6 +237,8 @@ async function main() {
       }
 
       root.innerHTML = svg
+      const pageBg = root.querySelector("path").getAttribute("fill")
+      document.body.style.background = pageBg
     } catch(e) {
       e.diagnostics.forEach((err) => {
         if (window.parent !== window) {
