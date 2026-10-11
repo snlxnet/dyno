@@ -68,4 +68,11 @@ Vis:
   h(3mm)
 }
 
+Type to make it a presentation:
+#let slide-note = ""
+#input(slide-note)
+#if slide-note != "" [
+  #notes(eval(slide-note, mode: "markup"))
+]
+
 #v(20mm)

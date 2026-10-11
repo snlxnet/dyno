@@ -118,7 +118,7 @@ body:has(#notes:not(:empty)) {
   font-size: 2em;
   padding: 1rem;
   border-radius: 14pt;
-  border: 3px solid #121212;
+  border: 3px solid #000;
   background: #2e2d39;
   display: flex;
   justify-content: space-between;
