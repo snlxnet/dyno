@@ -132,7 +132,7 @@ async function main() {
     }
 
     const id = element.id
-    let value = `"${element.value}"`
+    let value = `"${element.value.replaceAll('"', '\\"')}"`
     if (element.tagName === "TEXTAREA") {
       value = value.replaceAll("\n", "\\n")
     }
@@ -153,7 +153,7 @@ async function main() {
     const lines = text.split("\n")
 
     if (input && value !== null) {
-      lines[pos.line] = lines[pos.line].slice(0, pos.character + 1) + "=" + value
+      lines[pos.line] = lines[pos.line].slice(0, pos.character) + "=" + value
     }
 
     const fn = input || swap
