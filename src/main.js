@@ -266,7 +266,7 @@ function mkFields(map, updateField) {
         b.value = copied
 
         document.activeElement?.blur()
-        updateField(a, true)
+        updateField(a, true, () => {}, true)
         updateField(b, true, () => button.focus())
       }
       button.onkeyup = (e) => e.code === "Space" && button.onmousedown()
