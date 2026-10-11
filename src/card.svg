@@ -15,9 +15,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
      inkscape:document-units="mm"
-     inkscape:zoom="22.627417"
-     inkscape:cx="287.65988"
-     inkscape:cy="77.848037"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="239.88598"
+     inkscape:cy="195.33825"
      id="namedview1"
      pagecolor="#ffffff"
      bordercolor="#000000"
@@ -28,10 +28,10 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:window-width="1203"
      inkscape:window-height="1392"
-     inkscape:window-x="881"
+     inkscape:window-x="1347"
      inkscape:window-y="10"
      inkscape:window-maximized="0"
-     inkscape:current-layer="g2" /><defs
+     inkscape:current-layer="dino-card" /><defs
      id="defs1"><clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath4"><path
@@ -209,7 +209,7 @@
          id="tspan27">for typst</tspan></text><g
        style="display:inline;fill:none;fill-opacity:1;stroke:#eeeeee;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
        id="g2"
-       transform="matrix(0.2405303,0,0,0.2405303,72.685251,13.782386)"
+       transform="matrix(0.32471198,0,0,0.32471198,71.394438,10.48037)"
        inkscape:label="loader-outer"><g
          id="loader"
          style="display:none"><path
