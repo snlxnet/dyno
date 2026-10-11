@@ -27,7 +27,7 @@ function getLabel(label) {
 }
 
 async function main() {
-  const loader = document.getElementById("loader")
+  document.getElementById("loader-card").outerHTML = await (await fetch("/card.svg")).text()
   let text, map, fields, mainFile, compiler, tinymist
   
   /**
@@ -58,9 +58,10 @@ async function main() {
 
     if (method === "init") {
       [compiler, tinymist] = await Promise.all([
-        loadCompiler(loader),
+        loadCompiler(),
         downloadTinymist(),
       ])
+      loader.remove()
     } else if (method === "setMain") {
       if (data.name) {
         mainFile = data.name

@@ -3,12 +3,7 @@ import { createWebWorker } from "/npm/browser.js";
 
 const typstCdn = "/npm";
 
-/**
-@param {HTMLElement} loader
-*/
-export async function loadCompiler(loader) {
-  loader.textContent = "Loading the compiler..."
-
+export async function loadCompiler() {
   const workerEntry = `${typstCdn}/worker/web-worker.js`;
   const workerUrl = URL.createObjectURL(
     new Blob([`import ${JSON.stringify(workerEntry)};`], {
@@ -28,8 +23,6 @@ export async function loadCompiler(loader) {
 
   const dynoSource = await fetch("/dyno.typ")
   await compiler.addSource("dyno.typ", await dynoSource.text())
-
-  loader.textContent = "dyno is ready"
 
   return compiler
 }
