@@ -38,7 +38,7 @@
         max-width: 100%;
       }
 
-      body:has(#loader) {
+      body:has(#dino-card) {
         background: #2e2d39;
         color: #ccc;
       }
@@ -46,6 +46,7 @@
         transform-origin: center;
         transform-box: content-box;
         animation: spin linear infinite 2s;
+        transition: 0.2s ease-in-out;
         display: inline !important;
       }
       @keyframes spin {

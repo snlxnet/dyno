@@ -47,6 +47,9 @@ async function main() {
   const queueCommand = createQueue(processMessage)
   queueCommand({ method: "init" })
   window.addEventListener("message", ({data}) => queueCommand(data))
+  if (window.parent !== window) {
+    window.parent.postMessage({status: "listening"})
+  }
 
   const queueRender = createQueue(recompile)
   async function render() {
@@ -61,7 +64,7 @@ async function main() {
         loadCompiler(),
         downloadTinymist(),
       ])
-      loader.remove()
+      loader.style.opacity = 0
     } else if (method === "setMain") {
       if (data.name) {
         mainFile = data.name
