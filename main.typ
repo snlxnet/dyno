@@ -4,7 +4,7 @@
 #import "@preview/yap:0.1.0": notes
 
 // #set page(height: auto)
-#show: theme("/dyno", "dark", 0)
+#show: theme("/dyno", "/card.svg", "dark", 0)
 
 // Customize
 #context input-theme.update((default) => (
