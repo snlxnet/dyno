@@ -75,12 +75,6 @@ async function main() {
       text = analysis.text
       map = analysis.map
       fields = mkFields(map, updateField)
-
-      if (text.includes(`"@preview/yap:`)) {
-        document.body.classList.remove("disable-yap")
-      } else {
-        document.body.classList.add("disable-yap")
-      }
     } else if (method === "write") {
       await compiler.addFile(data.name, data.bytes)
     } else if (method === "render") {
@@ -240,6 +234,11 @@ async function main() {
       root.innerHTML = svg
       const pageBg = root.querySelector("path").getAttribute("fill")
       document.body.style.background = pageBg
+      if (pages.length === 1 && findNotes(document.body) === "") {
+        document.body.classList.add("disable-yap")
+      } else {
+        document.body.classList.remove("disable-yap")
+      }
     } catch(e) {
       e.diagnostics.forEach((err) => {
         if (window.parent !== window) {
