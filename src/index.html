@@ -30,9 +30,11 @@
     <script>
       const filename = new URLSearchParams(location.search).get("root") || "main.typ"
 
-      inner.onload = main
       window.addEventListener("message", ({data}) => {
-        const { err } = data
+        const { err, status } = data
+        if (status === "listening") {
+          main()
+        }
         if (!err) return
         console.error(`${err.line}:${err.column} ${err.message}\nHints: ${err.hints}`)
       })

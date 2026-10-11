@@ -1,4 +1,4 @@
-import { analyze } from "./analyze.js"
+import { analyze, downloadTinymist } from "./analyze.js"
 import { loadCompiler } from "./typst.js";
 import { createQueue } from "./queue.js"
 
@@ -27,8 +27,8 @@ function getLabel(label) {
 }
 
 async function main() {
-  const loader = document.getElementById("loader")
-  let text, map, fields, mainFile, compiler
+  document.getElementById("loader-card").outerHTML = await (await fetch("/card.svg")).text()
+  let text, map, fields, mainFile, compiler, tinymist
   
   /**
   @param {string} name The name of the font, like in `#set text(font: "...")`
@@ -47,6 +47,9 @@ async function main() {
   const queueCommand = createQueue(processMessage)
   queueCommand({ method: "init" })
   window.addEventListener("message", ({data}) => queueCommand(data))
+  if (window.parent !== window) {
+    window.parent.postMessage({status: "listening"})
+  }
 
   const queueRender = createQueue(recompile)
   async function render() {
@@ -57,14 +60,18 @@ async function main() {
     const method = data?.method
 
     if (method === "init") {
-      compiler = await loadCompiler(loader)
+      [compiler, tinymist] = await Promise.all([
+        loadCompiler(),
+        downloadTinymist(),
+      ])
+      loader.style.opacity = 0
     } else if (method === "setMain") {
       if (data.name) {
         mainFile = data.name
       }
 
       const source = new TextDecoder().decode(data.bytes)
-      const analysis = await analyze(source)
+      const analysis = await analyze(source, tinymist)
       text = analysis.text
       map = analysis.map
       fields = mkFields(map, updateField)
@@ -263,7 +270,7 @@ function mkFields(map, updateField) {
         b.value = copied
 
         document.activeElement?.blur()
-        updateField(a, true)
+        updateField(a, true, () => {}, true)
         updateField(b, true, () => button.focus())
       }
       button.onkeyup = (e) => e.code === "Space" && button.onmousedown()
