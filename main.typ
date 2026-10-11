@@ -78,13 +78,10 @@ Value: #if select == "zero" {
   ]
 })
 
-#context [
-  #let dino = url("https://upload.wikimedia.org/wikipedia/commons/4/49/Anchisaurus2.jpg", encoding: none)
-
-  #if dino == none [
-    Loading...
-  ] else [
-    #image(dino)
-  ]
+#let dino = url("https://upload.wikimedia.org/wikipedia/commons/4/49/Anchisaurus2.jpg", encoding: none)
+#if dino == none [
+  Loading...
+] else [
+  #image(dino)
 ]
 
