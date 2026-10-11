@@ -126,8 +126,8 @@
   id: "noid"
 ) = {
   if id == "noid" {
-    return none
+    // return none
   }
 
-  read(id, encoding: encoding)
+  read(url, encoding: encoding)
 }
