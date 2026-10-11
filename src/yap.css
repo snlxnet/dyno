@@ -7,7 +7,6 @@ body, #root {
   align-items: center;
   justify-content: center;
   min-height: 100svh;
-  background: #1e1e2e;
 }
 body.disable-yap,
 body.disable-yap #root {
@@ -54,7 +53,7 @@ foreignObject > * {
   height: 100svh;
   max-width: 50ch;
   font: 16px monospace;
-  color: #cdd6f4;
+  color: #ccc;
   display: none;
   padding: 1em;
   gap: 1em;
@@ -66,28 +65,33 @@ body:fullscreen #sidebar {
 }
 #notes {
   overflow-y: auto;
-  scrollbar-color: #cdd6f4 transparent;
+  scrollbar-color: #ccc transparent;
+  background: #121212;
+  border-radius: 1rem;
   padding: 1rem;
   &:empty {
     padding: 0rem;
   }
 }
 .highlight {
-  color: #94e2d5;
+  color: #a8a5ff;
+  &::before {
+    content: "> ";
+  }
 }
 h2 {
   font-weight: normal;
   font-size: 1.2em;
 }
 a {
-  color: #94e2d5;
+  color: #a8a5ff;
 }
 em {
-  color: #94e2d5;
+  color: #a8a5ff;
 }
 strong {
   font-weight: normal;
-  color: #94e2d5;
+  color: #a8a5ff;
 }
 p {
   margin: 1em 0;
@@ -114,7 +118,8 @@ body:has(#notes:not(:empty)) {
   font-size: 2em;
   padding: 1rem;
   border-radius: 14pt;
-  border: 3px solid #94e2d5;
+  border: 3px solid #000;
+  background: #2e2d39;
   display: flex;
   justify-content: space-between;
   gap: 1em;
@@ -131,6 +136,6 @@ body:has(#notes:not(:empty)) {
     width: 2rem;
     height: 2rem;
     display: block;
-    stroke: #cdd6f4;
+    stroke: #eee;
   }
 }

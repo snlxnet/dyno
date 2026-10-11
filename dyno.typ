@@ -69,6 +69,7 @@
 
   [#box(
     width: theme.width,
+    height: theme.height,
     baseline: theme.baseline,
     inset: inset,
     outset: theme.outset,

@@ -1,80 +1,80 @@
-#import "dyno.typ": input, swap, input-theme
-#import "tabs.typ": tabs
+#import "dyno.typ": *
+#import "colors.typ": *
+#import "site/main.typ": theme
+#import "@preview/yap:0.1.0": notes
 
-#set page(height: auto, margin: 2em)
+// #set page(height: auto)
+#show: theme("/dyno", "/card.svg", "dark", 0)
 
-#let answer(expr) = str(expr)
-#let accent = green
-#let neutral = rgb("#ddd")
-#let border = neutral + 0.3mm
-
-#set text(14pt, font: "Departure Mono")
-
+// Customize
 #context input-theme.update((default) => (
     ..default,
     inset: 0.6em,
-    baseline: 0.6em,
+    baseline: 0mm,
     radius: 0.3em,
-    stroke: 0.3mm + neutral,
-    stroke-focused: 0.3mm + accent,
-    stroke-selected: 0.3mm + accent,
+
+    fill: silver,
+    fill-focused: silver,
+    fill-selected: silver,
+
+    stroke: black,
+    stroke-focused: purple,
+    stroke-selected: purple,
+
+    text: white,
+    text-focused: purple,
+    text-selected: red,
 ))
 
+// Define variables
+#let a = 80
+#let b = 30
+#let options = "one"
+#let show-notes = true
 
-#let sticker-h = 20
-#let sticker-w = 30
-#let roll-w = 1200
-#let count = 20
-#let margin = 6
-#let checkbox = false
-#let select = "zero"
-
-#let columns = calc.floor(roll-w / (sticker-w+margin))
-#let rows = calc.ceil(count / columns)
-#let roll-length = rows * (sticker-h+margin) + 200
-
-#tabs[наклейки]
-#grid(
-  columns: 2,
-  gutter: 2em,
-  [Размеры наклейки, мм], grid(
-    columns: 3,
-    gutter: 1em,
-    input(sticker-w),
-    swap(sticker-w, sticker-h),
-    input(sticker-h),
-  ),
-  [Ширина рулона, м], input(roll-w),
-  [Количество наклеек], input(count),
-  [Длина рулона, м/п], answer(roll-length/1000),
-  [Галочка], input(checkbox),
-)
-
-Select field:
-#input(select)
-
-Value: #if select == "zero" {
-  0
-} else if select == "one" {
+// Process
+#let count = if options == "one" {
   1
-} else if select == "two" {
+} else if options == "two" {
   2
-} else if select == "three" {
-  3
+} else if options == "way more" {
+  100
 }
 
-#colbreak()
+#let shape = if a == b [square] else [rectangle]
 
-#layout(size => {
-  let scale = size.width / roll-w
-  set par(spacing: 0mm, leading: 0mm)
-  box(width: roll-w*scale, height: roll-length*scale, stroke: border)[
-    #set align(center + horizon)
-    #for i in range(count) {
-      box(width: (sticker-w+margin)*scale, height: (sticker-h+margin)*scale, inset: calc.floor(margin / 2) * scale)[
-        #box(width: 100%, height: 100%, stroke: 0.25mm + accent)
-      ]
-    }
-  ]
-})
+// Draw the UI
+Show notes: #input(show-notes)
 
+#if show-notes [
+  Notes:
+  + number inputs are auto-selected on focus, so you don't have to highlight a value to replace it
+  + red means it will be replaced by the number you press next
+  + try making it a square
+]
+
+How many #(shape)s: #input(options)
+
+#input(a)
+#swap(a, b)
+#input(b)
+
+$ #a times #b times count = #(a*b*count) "mm"^2 $
+
+Vis:
+
+#for _ in range(count) {
+  box(width: a*1mm, height: b*1mm, stroke: 0.3mm + purple)
+  h(3mm)
+}
+
+Type to make it a presentation:
+#let slide-note = ""
+#input(slide-note)
+#if slide-note != "" [
+  #notes(eval(slide-note, mode: "markup"))
+]
+
+#link("/?root=second.typ")[another demo]
+
+#v(20mm)

@@ -1,14 +1,14 @@
+import init, { TinymistLanguageServer } from "/tinymist/pkg/tinymist.js"
+
 export async function downloadTinymist() {
-  const pkg = await import("/tinymist/pkg/tinymist.js")
-  await pkg.default()
-  return pkg
+  await init()
 }
 
-async function createLspInstance(mist) {
+async function createLspInstance() {
   let tm;
 
   const nop = () => {}
-  tm = new mist.TinymistLanguageServer({ sendEvent: nop, sendRequest: nop, sendNotification: nop, resolveFn: nop });
+  tm = new TinymistLanguageServer({ sendEvent: nop, sendRequest: nop, sendNotification: nop, resolveFn: nop });
   tm.on_request("initialize", {
     processId: null,
     rootUri: "file:///main.typ",
@@ -34,16 +34,15 @@ async function createLspInstance(mist) {
 
 /**
 @param {string} text 
-@param {any} tinymist
 */
-export async function analyze(text, tinymist) {
+export async function analyze(text) {
   const lines = text.split("\n")
 
   const dynoImportIdx = lines.findIndex(line => line.includes('import "dyno.typ"'))
   const initialDynoImport = lines[dynoImportIdx]
   lines[dynoImportIdx] = "#let input(..args) = []; #let swap(..args) = []"
 
-  const lsp = await createLspInstance(tinymist)
+  const lsp = await createLspInstance()
   const uri = "file:///main.typ"
   lsp.on_notification("textDocument/didOpen", {
     textDocument: {
