@@ -24,7 +24,7 @@ jobs:
           rm README.md flake.* deps.sh
           mv webdemo.html index.html
           mkdir api
-          echo '["DejaVu Sans Mono.ttf","Departure Mono.otf","Libertinus Serif.otf","New Computer Modern Math.otf"]' > api/fonts
+          echo '["DejaVu Sans Mono.ttf","Libertinus Serif.otf","New Computer Modern Math.otf","jetbrains mono.ttf"]' > api/fonts
       - name: upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
