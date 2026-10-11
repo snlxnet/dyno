@@ -1,11 +1,10 @@
 #import "dyno.typ": *
 #import "colors.typ": *
-#import "yap.typ": notes
+#import "site/main.typ": theme
+#import "@preview/yap:0.1.0": notes
 
-#set page(height: auto, margin: 0mm, fill: silver)
-#set text(14pt, font: "Comfortaa", fill: white)
-#show link: underline
-#show link: set text(fill: purple)
+// #set page(height: auto)
+#show: theme("/dyno", "dark", 0)
 
 // Customize
 #context input-theme.update((default) => (
@@ -14,9 +13,9 @@
     baseline: 0mm,
     radius: 0.3em,
 
-    fill: gray,
-    fill-focused: gray,
-    fill-selected: gray,
+    fill: silver,
+    fill-focused: silver,
+    fill-selected: silver,
 
     stroke: black,
     stroke-focused: purple,
@@ -31,7 +30,7 @@
 #let a = 80
 #let b = 30
 #let options = "one"
-#let show-logo = true
+#let show-notes = true
 
 // Process
 #let count = if options == "one" {
@@ -45,16 +44,14 @@
 #let shape = if a == b [square] else [rectangle]
 
 // Draw the UI
-#if show-logo [
-  #figure(image("card.svg"))
+Show notes: #input(show-notes)
+
+#if show-notes [
+  Notes:
+  + number inputs are auto-selected on focus, so you don't have to highlight a value to replace it
+  + red means it will be replaced by the number you press next
+  + try making it a square
 ]
-
-Notes:
-+ number inputs are auto-selected on focus, so you don't have to highlight a value to replace it
-+ red means it will be replaced by the number you press next
-+ try making it a square
-
-Show logo: #input(show-logo)
 
 How many #(shape)s: #input(options)
 
@@ -71,3 +68,4 @@ Vis:
   h(3mm)
 }
 
+#v(20mm)
