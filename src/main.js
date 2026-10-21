@@ -39,7 +39,7 @@ async function main() {
     const font = new FontFace(name, data)
     await font.load()
     document.fonts.add(font)
-    await compiler.addFonts(data);
+    await compiler.font(data);
   }
 
   const root = document.getElementById("root")
@@ -82,7 +82,7 @@ async function main() {
         document.body.classList.add("disable-yap")
       }
     } else if (method === "write") {
-      await compiler.addFile(data.name, data.bytes)
+      await compiler.add(data.name, data.bytes)
     } else if (method === "render") {
       await render()
     } else if (method === "font") {
@@ -219,28 +219,25 @@ async function main() {
   }
 
   async function recompile(onCompleted) {
-    await compiler.addSource(mainFile, text)
+    await compiler.add(mainFile, new TextEncoder().encode(text))
 
     try {
-      const {pages, diagnostics} = await compiler.compile({
-        main: mainFile,
-        format: "svg",
-      })
-      const svg = pages.map(page => page.output).join("\n\n")
+      const {svg, err} = await compiler.svg(mainFile)
+
+      if (err) {
+        console.warn(...err)
+      }
 
       if (!svg) {
         console.log("zero pages")
-        throw new Error()
-      }
-
-      if (diagnostics) {
-        console.warn(...diagnostics)
+        return
       }
 
       root.innerHTML = svg
       const pageBg = root.querySelector("path").getAttribute("fill")
       document.body.style.background = pageBg
     } catch(e) {
+      console.log(e)
       e.diagnostics.forEach((err) => {
         if (window.parent !== window) {
           window.parent.postMessage({err})
