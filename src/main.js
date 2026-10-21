@@ -2,6 +2,7 @@ import { analyze, downloadTinymist } from "./analyze.js"
 import { loadCompiler } from "./typst.js";
 import { createQueue } from "./queue.js"
 
+const missingFiles = []
 main()
 
 function getLabel(label) {
@@ -220,9 +221,23 @@ async function main() {
 
   async function recompile(onCompleted) {
     await compiler.add(mainFile, new TextEncoder().encode(text))
+    await compiler.deps(mainFile)
 
     try {
       const {svg, err} = await compiler.svg(mainFile)
+
+      const NOT_FOUND_MSG = "file not found (searched at "
+      const missing = (err.find(e => e.message.startsWith(NOT_FOUND_MSG))?.message || ")").slice(NOT_FOUND_MSG.length, -1)
+      if (missing && !missingFiles.includes(missing)) {
+        try {
+          const file = await fetch(missing)
+          compiler.add(missing, new Uint8Array(await file.arrayBuffer()))
+          recompile(onCompleted)
+          return
+        } catch (_e) {
+          missingFiles.push(missing)
+        }
+      }
 
       if (err) {
         console.warn(...err)
