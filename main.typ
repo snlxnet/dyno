@@ -1,3 +1,8 @@
+= Read test
+
+#read("http://localhost:4000?param=true")
+
+/*
 #import "dyno.typ": *
 #import "colors.typ": *
 #import "site/main.typ": theme
