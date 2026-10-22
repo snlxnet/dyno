@@ -195,9 +195,17 @@ async function main() {
       }
       element.classList.add("dyno")
 
-      const boundsFrame = element.parentElement.getBBox()
-      element.width.baseVal.value = boundsFrame.width
-      element.height.baseVal.value = boundsFrame.height
+      requestAnimationFrame(() => {
+        const boundsFrame = element.parentElement.getBBox()
+        element.width.baseVal.value = boundsFrame.width
+        element.height.baseVal.value = boundsFrame.height
+      })
+      const inputObserver = new IntersectionObserver(([]) => {
+        const boundsFrame = element.parentElement.getBBox()
+        element.width.baseVal.value = boundsFrame.width
+        element.height.baseVal.value = boundsFrame.height
+      })
+      inputObserver.observe(element)
 
       const [_, fontSize, fontFamily, tracking, color, textAlign, alignItems, inset] = element.parentElement.dataset.typstLabel.split(";")
       field.style.fontSize = fontSize + "pt"
