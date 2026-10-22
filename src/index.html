@@ -50,7 +50,7 @@
         })
 
         const index = await fetch("/" + filename, { cache: "no-cache" })
-        const bytes = await index.bytes()
+        const bytes = await index.arrayBuffer()
         inner.contentWindow.postMessage({method: "setMain", name: "index.typ", bytes})
         inner.contentWindow.postMessage({method: "render"})
       }

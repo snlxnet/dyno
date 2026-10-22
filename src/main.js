@@ -29,6 +29,7 @@ function getLabel(label) {
 
 async function main() {
   document.getElementById("loader-card").outerHTML = await (await fetch("/card.svg", {cache: "force-cache"})).text()
+  setTimeout(() => document.getElementById("dino-card").style.opacity = 1)
   let text, map, fields, mainFile, compiler
   
   /**

@@ -136,7 +136,7 @@ async function analyzeSwaps(lsp, lines) {
 */
 async function getTypstFn(lsp, lines, fn) {
   const maybeInputs = await Promise.all(lines
-    .flatMap((line, idx) => line.matchAll(fn).map(match => ({line: idx, character: match.index})).toArray())
+    .flatMap((line, idx) => [...line.matchAll(fn)].map(match => ({line: idx, character: match.index})))
     .map(({line, character}) => selectVariable(lsp, line, character))
   )
 
@@ -186,7 +186,7 @@ async function getOptions(lsp, lines, variable) {
   const name = lines[variable.start.line].slice(variable.start.character, variable.end.character)
 
   const maybeMentions = await Promise.all(lines
-    .flatMap((line, idx) => line.matchAll(name).map(match => ({line: idx, character: match.index})).toArray())
+    .flatMap((line, idx) => [...line.matchAll(name)].map(match => ({line: idx, character: match.index})))
     .map(({line, character}) => selectVariable(lsp, line, character))
   )
   const mentions = maybeMentions
