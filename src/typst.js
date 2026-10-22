@@ -1,28 +1,11 @@
-import { createTypstCompiler } from "/npm/typst.js";
-import { createWebWorker } from "/npm/browser.js";
-
-const typstCdn = "/npm";
+import init, { TypJs } from "/npm/typ_js.js";
 
 export async function loadCompiler() {
-  const workerEntry = `${typstCdn}/worker/web-worker.js`;
-  const workerUrl = URL.createObjectURL(
-    new Blob([`import ${JSON.stringify(workerEntry)};`], {
-      type: "text/javascript",
-    }),
-  );
-
-  const compiler = await createTypstCompiler({
-    backend: "auto",
-    worker: () => createWebWorker(workerUrl),
-    coreModules: {
-      "engine.core.wasm": WebAssembly.compileStreaming(fetch(`${typstCdn}/engine/engine.core.wasm`)),
-      "engine.core2.wasm": WebAssembly.compileStreaming(fetch(`${typstCdn}/engine/engine.core2.wasm`)),
-      "engine.core3.wasm": WebAssembly.compileStreaming(fetch(`${typstCdn}/engine/engine.core3.wasm`)),
-    },
-  });
+  await init()
+  const compiler = TypJs.new()
 
   const dynoSource = await fetch("/dyno.typ")
-  await compiler.addSource("dyno.typ", await dynoSource.text())
+  await compiler.add("/dyno.typ", new Uint8Array(await dynoSource.arrayBuffer()))
 
   return compiler
 }

@@ -57,7 +57,7 @@
 
 #set page(margin: 10mm, paper: "a6", flipped: true)
 #set box(outset: 3mm)
-#set text(font: "JetBrainsMono NF")
+#set text(font: "JetBrains Mono")
 
 #set page(fill: rgb("#eee"))
 #let fill = rgb("#fff")

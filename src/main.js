@@ -2,6 +2,7 @@ import { analyze, downloadTinymist } from "./analyze.js"
 import { loadCompiler } from "./typst.js";
 import { createQueue } from "./queue.js"
 
+const missingFiles = []
 main()
 
 function getLabel(label) {
@@ -39,7 +40,7 @@ async function main() {
     const font = new FontFace(name, data)
     await font.load()
     document.fonts.add(font)
-    await compiler.addFonts(data);
+    await compiler.font(data);
   }
 
   const root = document.getElementById("root")
@@ -82,7 +83,7 @@ async function main() {
         document.body.classList.add("disable-yap")
       }
     } else if (method === "write") {
-      await compiler.addFile(data.name, data.bytes)
+      await compiler.add(data.name, data.bytes)
     } else if (method === "render") {
       await render()
     } else if (method === "font") {
@@ -194,9 +195,17 @@ async function main() {
       }
       element.classList.add("dyno")
 
-      const boundsFrame = element.parentElement.getBBox()
-      element.width.baseVal.value = boundsFrame.width
-      element.height.baseVal.value = boundsFrame.height
+      requestAnimationFrame(() => {
+        const boundsFrame = element.parentElement.getBBox()
+        element.width.baseVal.value = boundsFrame.width
+        element.height.baseVal.value = boundsFrame.height
+      })
+      const inputObserver = new IntersectionObserver(([]) => {
+        const boundsFrame = element.parentElement.getBBox()
+        element.width.baseVal.value = boundsFrame.width
+        element.height.baseVal.value = boundsFrame.height
+      })
+      inputObserver.observe(element)
 
       const [_, fontSize, fontFamily, tracking, color, textAlign, alignItems, inset] = element.parentElement.dataset.typstLabel.split(";")
       field.style.fontSize = fontSize + "pt"
@@ -219,28 +228,39 @@ async function main() {
   }
 
   async function recompile(onCompleted) {
-    await compiler.addSource(mainFile, text)
+    await compiler.add(mainFile, new TextEncoder().encode(text))
+    await compiler.deps(mainFile)
 
     try {
-      const {pages, diagnostics} = await compiler.compile({
-        main: mainFile,
-        format: "svg",
-      })
-      const svg = pages.map(page => page.output).join("\n\n")
+      const {svg, err} = await compiler.svg(mainFile)
+
+      const NOT_FOUND_MSG = "file not found (searched at "
+      const missing = (err.find(e => e.message.startsWith(NOT_FOUND_MSG))?.message || ")").slice(NOT_FOUND_MSG.length, -1)
+      if (missing && !missingFiles.includes(missing)) {
+        try {
+          const file = await fetch(missing)
+          compiler.add(missing, new Uint8Array(await file.arrayBuffer()))
+          recompile(onCompleted)
+          return
+        } catch (_e) {
+          missingFiles.push(missing)
+        }
+      }
+
+      if (err) {
+        console.warn(...err)
+      }
 
       if (!svg) {
         console.log("zero pages")
-        throw new Error()
-      }
-
-      if (diagnostics) {
-        console.warn(...diagnostics)
+        return
       }
 
       root.innerHTML = svg
       const pageBg = root.querySelector("path").getAttribute("fill")
       document.body.style.background = pageBg
     } catch(e) {
+      console.log(e)
       e.diagnostics.forEach((err) => {
         if (window.parent !== window) {
           window.parent.postMessage({err})
