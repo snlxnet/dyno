@@ -93,6 +93,7 @@ async function main() {
   }
 
   let ignoreFocusOn = null
+  let lastFocused = null
   let isMouseDown = false
   document.addEventListener("mousedown", () => isMouseDown = true)
   document.addEventListener("mouseup", () => isMouseDown = false)
@@ -102,6 +103,11 @@ async function main() {
     if (e.target.tagName === "SELECT" && isMouseDown) {
       return
     }
+
+    if (lastFocused === e.target) {
+      return
+    }
+    lastFocused = e.target
 
     if (ignoreFocusOn !== e.target) {
       updateField(e.target)
