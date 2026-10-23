@@ -40,6 +40,8 @@ const DYNO = [
 const STATIC_PATH = (process.env.DYNO_DIR || process.cwd()).replace(/\/$/, "");
 const PORT = +(process.env.DYNO_PORT || 3000);
 
+const watchers = new Set();
+
 const toBool = [() => true, () => false];
 
 const prepareFile = async (url) => {
@@ -70,6 +72,15 @@ async function checkExists(base, file) {
   return exists ? p : null
 }
 
+fs.watch(STATIC_PATH, (event, file) => {
+  if (!file) {
+    return
+  }
+
+  const message = `event: file-change\ndata: ${JSON.stringify({event, file: file.toString()})}\n\n`
+  watchers.forEach(watcher => watcher.write(message))
+})
+
 http
   .createServer(async (req, res) => {
     if (req.url === "/api/fonts") {
@@ -77,6 +88,16 @@ http
       const fonts = entries.filter(name => /\.(otf|ttf)$/.test(name))
       res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "public, max-age=36000" });
       res.end(JSON.stringify(fonts))
+      return
+    } else if (req.url === "/api/watch") {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      })
+      res.write("retry: 5000\n\n")
+      watchers.add(res)
+      req.on("close", () => watchers.delete(res))
       return
     }
     const file = await prepareFile(req.url);
