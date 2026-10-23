@@ -3,7 +3,6 @@
 #import "site/main.typ": theme
 #import "@preview/yap:0.1.0": notes
 
-// #set page(height: auto)
 #show: theme("/dyno", "/card.svg", "dark", 0)
 
 // Customize
@@ -74,6 +73,12 @@ Type to make it a presentation:
 #if slide-note != "" [
   #notes(eval(slide-note, mode: "markup"))
 ]
+
+= API
+#let name = "dyno"
+Name: #input(name)
+
+#read("http://localhost:4000?name=" + name)
 
 #link("/?root=second.typ")[another demo]
 

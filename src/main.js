@@ -93,6 +93,7 @@ async function main() {
   }
 
   let ignoreFocusOn = null
+  let lastFocused = null
   let isMouseDown = false
   document.addEventListener("mousedown", () => isMouseDown = true)
   document.addEventListener("mouseup", () => isMouseDown = false)
@@ -102,6 +103,11 @@ async function main() {
     if (e.target.tagName === "SELECT" && isMouseDown) {
       return
     }
+
+    if (lastFocused === e.target) {
+      return
+    }
+    lastFocused = e.target
 
     if (ignoreFocusOn !== e.target) {
       updateField(e.target)
@@ -236,9 +242,10 @@ async function main() {
       const {svg, err} = await compiler.svg(mainFile)
 
       const NOT_FOUND_MSG = "file not found (searched at "
-      const missing = (err.find(e => e.message.startsWith(NOT_FOUND_MSG))?.message || ")").slice(NOT_FOUND_MSG.length, -1)
+      const missing = (err.find(e => e.message.startsWith(NOT_FOUND_MSG))?.message || ")").slice(NOT_FOUND_MSG.length+1, -1).replace(":/", "://")
       if (missing && !missingFiles.includes(missing)) {
         try {
+          console.log(missing)
           const file = await fetch(missing)
           compiler.add(missing, new Uint8Array(await file.arrayBuffer()))
           recompile(onCompleted)
