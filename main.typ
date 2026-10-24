@@ -3,7 +3,7 @@
 #import "site/main.typ": theme
 #import "@preview/yap:0.1.0": notes
 
-#show: theme("/dyno", "/card.svg", "dark", 0)
+#show: theme("/dyno", "/ru/dyno", "/card.svg", "dark", 0)
 
 // Customize
 #context input-theme.update((default) => (
@@ -73,12 +73,6 @@ Type to make it a presentation:
 #if slide-note != "" [
   #notes(eval(slide-note, mode: "markup"))
 ]
-
-= API
-#let name = "dyno"
-Name: #input(name)
-
-#read("http://localhost:4000?name=" + name)
 
 #link("/?root=second.typ")[another demo]
 
