@@ -168,18 +168,17 @@ pre {
     } else {
       doc
     }
+    v(1.5cm)
     set align(bottom + center)
     squiggles.static-bottom
     footer[
       #if ru-footer [
         alexanderthestudent\@yandex.ru
         | #link("https://snlx.net/ru")[Главная]
-        | #link(ru-path + ".pdf")[PDF]
       ] else [
         \@snlxnet
         | #link("https://snlx.net")[home]
         | #link("https://github.com/snlxnet")[github]
-        | #link(path + ".pdf")[pdf]
       ]
     ]
   })

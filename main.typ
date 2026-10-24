@@ -1,62 +1,107 @@
 #import "dyno.typ": *
 #import "site/main.typ": theme
+#set raw(theme: "mocha.tmTheme")
 #let purple = rgb("#a8a5ff")
 
 #set document(
   title: "dyno | snlx.net",
   description: "A Typst runtime with inputs",
 )
+#set page(height: auto)
 #show: theme("/dyno", "/ru/dyno", "/card.svg", "dark", 0)
+#set text(size: 13pt)
 
-// Define variables
-#let a = 80
-#let b = 30
-#let options = "one"
-#let show-notes = true
+#let demo(a, b) = grid(
+  columns: (1fr, auto, 1fr),
+  gutter: 1em,
+  align: horizon,
+  a,
+  sym.arrow,
+  b,
+)
 
-// Process
-#let count = if options == "one" {
-  1
-} else if options == "two" {
-  2
-} else if options == "way more" {
-  100
-}
+I love Typst's approachability ---
+it's the easiest language to explain to a non-programmer.
+It would be the perfect fit for simple apps
+that need to visualize things, but it's missing inputs.
+Dyno adds them:
 
-#let shape = if a == b [square] else [rectangle]
+#demo(
+  [
+  ```typst
+  #import "dyno.typ": input
 
-// Draw the UI
-Show notes: #input(show-notes)
+  #let answer = 42
+  #input(answer)
 
-#if show-notes [
-  Notes:
-  + number inputs are auto-selected on focus, so you don't have to highlight a value to replace it
-  + red means it will be replaced by the number you press next
-  + try making it a square
-]
+  Double is #(answer * 2)
+  ```
+  ],
+  box[
+    #let answer = 42
+    #input(answer)
 
-How many #(shape)s: #input(options)
+    Double of that is #(answer * 2)
+  ],
+)
 
-#input(a)
-#swap(a, b)
-#input(b)
+And makes choice inputs easy:
 
-$ #a times #b times count = #(a*b*count) "mm"^2 $
+#demo(
+  box[
+  ```typst
+  #let flavor = "vanilla"
+  Your fav ice cream: #input(flavor)
 
-Vis:
+  You chose
+  #if flavor == "vanilla" [
+    #emoji.icecream.soft
+  ] else if flavor == "chocolate" [
+    #emoji.chocolate
+  ] else if flavor == "strawberry" [
+    #emoji.strawberry
+  ]
+  ```
+  ],
+  box[
+    #let flavor = "vanilla"
+    Your fav ice cream: #input(flavor)
 
-#for _ in range(count) {
-  box(width: a*1mm, height: b*1mm, stroke: 0.3mm + purple)
-  h(3mm)
-}
+    You chose
+    #if flavor == "vanilla" [
+      #emoji.icecream.soft
+    ] else if flavor == "chocolate" [
+      #emoji.chocolate
+    ] else if flavor == "strawberry" [
+      #emoji.strawberry
+    ]
+  ],
+)
 
-Type to make it a presentation:
-#let slide-note = ""
-#input(slide-note)
-#if slide-note != "" [
-  #notes(eval(slide-note, mode: "markup"))
-]
+And allows you to access the network:
+#demo(
+  [
+  ```typst
+  5 random dinosaur species:
+  #json(
+    read(
+      "https://dinoipsum.com/api/?format=json&paragraphs=1&words=5",
+      encoding: none,
+    )
+  )
+  ```
+  ],
+  box[
+  5 random dinosaur species:
+  #json(
+    read(
+      "https://dinoipsum.com/api/?format=json&paragraphs=1&words=5",
+      encoding: none,
+    )
+  ).at(0)
+  ]
+)
 
-#link("/?root=second.typ")[another demo]
+To use it, *TODO make a js upload thingy here*
 
-#v(20mm)
+You can also self-host it, *TODO*
