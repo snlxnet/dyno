@@ -27,7 +27,7 @@
   let rng = gen-rng(seed)
   let n = 0
 
-  let segments = calc.ceil(size.width / (2mm * segment)) + 1
+  let segments = calc.ceil(size.width / (2mm * segment)) + 2
   let points = ()
   let end = 1mm * (segments * segment * 2)
 

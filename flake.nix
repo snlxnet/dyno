@@ -15,6 +15,7 @@
             nodejs_24
             typescript-language-server
             wget
+            uv
           ];
           shellHook = "./deps.sh";
         };

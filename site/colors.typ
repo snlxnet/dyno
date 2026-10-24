@@ -1,11 +1,11 @@
 #let print = (
   light: (
-    header: cmyk(0%, 0%, 0%, 5%),
-    border: cmyk(0%, 0%, 0%, 40%),
+    header: cmyk(0%, 0%, 0%, 0%),
+    border: cmyk(0%, 0%, 0%, 20%),
     page:   cmyk(0%, 0%, 0%, 0%),
     deep:   cmyk(0%, 0%, 0%, 100%),
     text:   cmyk(0%, 0%, 0%, 80%),
-    accent: cmyk(90%, 0%, 80%, 0%),
+    accent: cmyk(60%, 0%, 70%, 0%),
     qrbg:   cmyk(0%, 0%, 0%, 0%),
     qrfg: cmyk(0%, 0%, 0%, 100%),
   ),
@@ -24,13 +24,23 @@
 #let screen = (
   light: (
     header: rgb("#ffffff"),
-    border: rgb("#aaaaaa"),
-    page:   rgb("#eeeeee"),
+    border: rgb("#bbbbbb"),
+    page:   rgb("#ffffff"),
     deep:   rgb("#000000"),
     text:   rgb("#444444"),
     accent: rgb("#00ac6d"),
     qrbg:   rgb("#dddddd"),
     qrfg:   rgb("#444444"),
+  ),
+  air: (
+    header: rgb("#ececf4"),
+    border: rgb("#dde"),
+    page:   rgb("#ffffff"),
+    deep:   rgb("#1e1e1e"),
+    text:   rgb("#343a40"),
+    accent: rgb("#6965db"),
+    qrbg:   rgb("#ffffff"),
+    qrfg:   rgb("#343a40"),
   ),
   dark: (
     header: rgb("#2e2d39"),

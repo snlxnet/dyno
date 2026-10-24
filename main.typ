@@ -3,8 +3,7 @@
 #import "site/main.typ": theme
 #import "@preview/yap:0.1.0": notes
 
-// #set page(height: auto)
-#show: theme("/dyno", "/card.svg", "dark", 0)
+#show: theme("/dyno", "/ru/dyno", "/card.svg", "dark", 0)
 
 // Customize
 #context input-theme.update((default) => (

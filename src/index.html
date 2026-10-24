@@ -29,6 +29,7 @@
 
     <script>
       const filename = new URLSearchParams(location.search).get("root") || "main.typ"
+      const events = new EventSource("/api/watch")
 
       window.addEventListener("message", ({data}) => {
         const { err, status } = data
@@ -40,6 +41,18 @@
       })
 
       async function main() {
+        await loadFonts()
+        await loadTyp()
+
+        events.addEventListener("file-change", (event) => {
+          const data = JSON.parse(event.data)
+          if (data.file === filename.replace(/^\//, "")) {
+            loadTyp()
+          }
+        })
+      }
+
+      async function loadFonts() {
         const fonts = JSON.parse(await (await fetch("/api/fonts")).text())
         fonts.forEach((font) => {
           inner.contentWindow.postMessage({
@@ -48,10 +61,12 @@
             url: "/" + font,
           })
         })
+      }
 
-        const index = await fetch("/" + filename, { cache: "no-cache" })
-        const bytes = await index.arrayBuffer()
-        inner.contentWindow.postMessage({method: "setMain", name: "index.typ", bytes})
+      async function loadTyp() {
+        const main = await fetch("/" + filename, { cache: "no-cache" })
+        const bytes = await main.arrayBuffer()
+        inner.contentWindow.postMessage({method: "setMain", name: filename, bytes})
         inner.contentWindow.postMessage({method: "render"})
       }
     </script>
