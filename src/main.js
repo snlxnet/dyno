@@ -106,7 +106,9 @@ async function main() {
     if (lastFocused === e.target) {
       return
     }
-    lastFocused = e.target
+    if (!e.target.id.startsWith("sw-")) {
+      lastFocused = e.target
+    }
 
     if (ignoreFocusOn !== e.target) {
       updateField(e.target)
