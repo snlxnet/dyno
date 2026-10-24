@@ -1,5 +1,5 @@
 #import "colors.typ"
-#import "squiggles.typ": squiggles
+#import "squiggles.typ"
 #import "qr.typ": qr
 
 #let load-sketch = ```js
@@ -138,13 +138,7 @@ pre {
     } else {
       header
     }
-    squiggles(
-      seed,
-      fill: colorscheme.header,
-      stroke: 0.3mm + colorscheme.border,
-      up: 3,
-      ..args,
-    )
+    squiggles.static-top
     show link: underline
     show link: set text(fill: colorscheme.accent)
     if target() == "html" {
@@ -154,13 +148,7 @@ pre {
       doc
     }
     set align(bottom + center)
-    squiggles(
-      seed + 1,
-      fill: colorscheme.header,
-      stroke: 0.3mm + colorscheme.border,
-      down: -10,
-      ..args,
-    )
+    squiggles.static-bottom
     footer[
       #if ru-footer [
         alexanderthestudent\@yandex.ru

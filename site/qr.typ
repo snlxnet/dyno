@@ -1,4 +1,3 @@
-#import "@preview/cades:0.3.1": qr-code
 #set page(paper: "a6", flipped: true)
 
 #let k = 7
@@ -9,11 +8,7 @@
       fill: background,
       inset: width/k,
       width: 100%,
-      qr-code(
-        "https://snlx.net" + path,
-        background: background,
-        color: color,
-      ),
+      image("/qr.svg"),
     ),
     v(1mm),
     box(fill: background, width: 100%, inset: (x: width/k, y: width/k/2))[
@@ -31,4 +26,15 @@
   qr("/", "/", width: 40mm, background: rgb("#eee"), color: rgb("#444")),
   qr("/", "/", width: 40mm, background: rgb("#121212"), color: rgb("#eee")),
   qr("/", "/", width: 40mm, background: rgb("#c9c1ba"), color: rgb("5a4741")),
+)
+
+/*
+#import "@preview/cades:0.3.1": qr-code
+#let k = 7
+#set page(width: auto, height: auto, margin: 0mm, fill: rgb("#00000000"))
+#set text(font: "JetBrainsMono NF")
+#qr-code(
+  "https://snlx.net/dyno",
+  background: rgb("#eeeeee"),
+  color: rgb("#121212"),
 )
