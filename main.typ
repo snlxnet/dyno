@@ -1,29 +1,12 @@
 #import "dyno.typ": *
-#import "colors.typ": *
 #import "site/main.typ": theme
-#import "@preview/yap:0.1.0": notes
+#let purple = rgb("#a8a5ff")
 
+#set document(
+  title: "dyno | snlx.net",
+  description: "A Typst runtime with inputs",
+)
 #show: theme("/dyno", "/ru/dyno", "/card.svg", "dark", 0)
-
-// Customize
-#context input-theme.update((default) => (
-    ..default,
-    inset: 0.6em,
-    baseline: 0mm,
-    radius: 0.3em,
-
-    fill: silver,
-    fill-focused: silver,
-    fill-selected: silver,
-
-    stroke: black,
-    stroke-focused: purple,
-    stroke-selected: purple,
-
-    text: white,
-    text-focused: purple,
-    text-selected: red,
-))
 
 // Define variables
 #let a = 80

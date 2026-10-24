@@ -1,5 +1,6 @@
 #import "colors.typ"
 #import "squiggles.typ"
+#import "/dyno.typ"
 #import "qr.typ": qr
 
 #let load-sketch = ```js
@@ -131,6 +132,26 @@ pre {
   show strong: set text(fill: colorscheme.accent)
   show raw.where(block: true): it => block(inset: 1em, fill: colorscheme.header, radius: 3mm, width: 100%, it)
   set page(margin: 10mm, fill: colorscheme.page)
+  
+  // dyno-specific:
+  dyno.input-theme.update((default) => (
+      ..default,
+      inset: 0.6em,
+      baseline: 0mm,
+      radius: 0.3em,
+
+      fill: colorscheme.header,
+      fill-focused: colorscheme.header,
+      fill-selected: colorscheme.header,
+
+      stroke: colorscheme.border,
+      stroke-focused: colorscheme.accent,
+      stroke-selected: colorscheme.accent,
+
+      text: colorscheme.text,
+      text-focused: colorscheme.accent,
+      text-selected: rgb("#ff8383"),
+  ))
   
   wrapper({
     if target() == "html" {
