@@ -66,7 +66,6 @@ async function main() {
         loadCompiler(),
         downloadTinymist(),
       ])
-      loader.style.opacity = 0
     } else if (method === "setMain") {
       if (data.name) {
         mainFile = data.name
