@@ -45,10 +45,8 @@ Dyno adds them:
   ],
 )
 
-And makes choice inputs easy:
-
 #demo(
-  box[
+  [
   ```typst
   #let flavor = "vanilla"
   Your fav ice cream: #input(flavor)
@@ -78,7 +76,34 @@ And makes choice inputs easy:
   ],
 )
 
-And allows you to access the network:
+It also has swap buttons:
+#demo(
+  [
+  ```typst
+  #import "dyno.typ": input, swap
+  #let x = 30
+  #let y = 20
+  #input(x)
+  #swap(x, y)
+  #input(y)
+  #rect(width: x*1mm, height: y*1mm)
+  ```
+  ],
+  box[
+  #set rect(stroke: rgb("a8a5ff"))
+  #let x = 30
+  #let y = 20
+  #input(x)
+  #swap(x, y)
+  #input(y)
+  #rect(width: x*1mm, height: y*1mm, stroke: rgb("a8a5ff"))
+  ]
+)
+
+Warning: the engine breaks if you put 2 inputs on one source line
+like `#input(a) #input(b)`.
+
+Dyno also allows accessing the network:
 #demo(
   [
   ```typst
