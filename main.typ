@@ -1,5 +1,6 @@
 #import "dyno.typ": *
 #import "site/main.typ": theme
+#import "site/colors.typ": screen
 #set raw(theme: "mocha.tmTheme")
 #let purple = rgb("#a8a5ff")
 
@@ -127,6 +128,15 @@ Dyno also allows accessing the network:
   ]
 )
 
-To use it, *TODO make a js upload thingy here*
+#let button(it) = box(
+  stroke: screen.dark.border,
+  fill: screen.dark.header,
+  inset: 0.6em,
+  radius: 0.3em,
+  align(center, it),
+)
 
-You can also self-host it, *TODO*
+Create a project folder on your computer (#link("https://snlx.net/typ-intro")[how?])
+and go to #link("/app")[the web version of dyno], select that project there.
+
+You can self-host it after that by starting `node server.js` in the root of the project.

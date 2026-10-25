@@ -156,10 +156,18 @@ pre {
   wrapper({
     if target() == "html" {
       html.header(html.frame(box(width: 180mm, header)))
+      import "squiggles-dyn.typ": squiggles
+      squiggles(
+        seed,
+        fill: colorscheme.header,
+        stroke: 0.3mm + colorscheme.border,
+        up: 3,
+        ..args,
+      )
     } else {
       header
+      squiggles.static-top
     }
-    squiggles.static-top
     show link: underline
     show link: set text(fill: colorscheme.accent)
     if target() == "html" {
@@ -170,17 +178,21 @@ pre {
     }
     v(1.5cm)
     set align(bottom + center)
-    squiggles.static-bottom
-    footer[
-      #if ru-footer [
-        alexanderthestudent\@yandex.ru
-        | #link("https://snlx.net/ru")[Главная]
-      ] else [
-        \@snlxnet
-        | #link("https://snlx.net")[home]
-        | #link("https://github.com/snlxnet")[github]
+    if target() != "html" {
+      squiggles.static-bottom
+      footer[
+        #if ru-footer [
+          alexanderthestudent\@yandex.ru
+          | #link("https://snlx.net/ru")[Главная]
+        ] else [
+          \@snlxnet
+          | #link("https://snlx.net")[home]
+          | #link("https://github.com/snlxnet")[github]
+        ]
       ]
-    ]
+    } else {
+      html.div(class: "squiggles")
+    }
   })
 }
 
