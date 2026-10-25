@@ -36,8 +36,11 @@
         if (status === "listening") {
           main()
         }
-        if (!err) return
-        console.error(`${err.line}:${err.column} ${err.message}\nHints: ${err.hints}`)
+        document.body.style.filter = ""
+        if (!err.length) return
+        console.error(err)
+        document.body.style.filter = "blur(0.6em)"
+        document.body.style.background = "#ff8383"
       })
 
       async function main() {
