@@ -282,14 +282,11 @@ async function main() {
         console.warn(...err)
       }
 
-      if (!svg) {
-        console.log("zero pages")
-        return
+      if (svg) {
+        root.innerHTML = svg
+        const pageBg = root.querySelector("path").getAttribute("fill")
+        document.body.style.background = pageBg
       }
-
-      root.innerHTML = svg
-      const pageBg = root.querySelector("path").getAttribute("fill")
-      document.body.style.background = pageBg
     } catch(e) {
       console.log(e)
       e.diagnostics.forEach((err) => {
