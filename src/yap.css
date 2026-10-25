@@ -13,6 +13,9 @@ body.disable-yap #root {
   background: transparent;
   flex-direction: column;
   justify-content: flex-start;
+  svg {
+    height: auto;
+  }
 }
 body::backdrop {
   display: none;

@@ -29,6 +29,11 @@ function getLabel(label) {
 
 async function main() {
   document.getElementById("loader-card").outerHTML = await (await fetch("/card.svg", {cache: "force-cache"})).text()
+  addEventListener("beforeprint", (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    print()
+  })
   setTimeout(() => document.getElementById("dino-card").style.opacity = 1)
   let text, map, fields, mainFile, compiler
   
@@ -36,8 +41,7 @@ async function main() {
   @param {string} name The name of the font, like in `#set text(font: "...")`
   @param {string} path The URL of the font file, ends in `.ttf` or `.otf`
   */
-  async function addFont(name, url) {
-    const data = new Uint8Array(await (await fetch(url, {cache: "force-cache"})).arrayBuffer())
+  async function addFont(name, data) {
     const font = new FontFace(name, data)
     await font.load()
     document.fonts.add(font)
@@ -66,7 +70,6 @@ async function main() {
         loadCompiler(),
         downloadTinymist(),
       ])
-      loader.style.opacity = 0
     } else if (method === "setMain") {
       if (data.name) {
         mainFile = data.name
@@ -88,7 +91,10 @@ async function main() {
     } else if (method === "render") {
       await render()
     } else if (method === "font") {
-      await addFont(data.name, data.url)
+      const bytes = data.bytes || new Uint8Array(await (await fetch(data.url, {cache: "force-cache"})).arrayBuffer())
+      await addFont(data.name, bytes)
+    } else if (method === "reset") {
+      compiler.reset()
     }
   }
 
@@ -107,7 +113,9 @@ async function main() {
     if (lastFocused === e.target) {
       return
     }
-    lastFocused = e.target
+    if (!e.target.id.startsWith("sw-")) {
+      lastFocused = e.target
+    }
 
     if (ignoreFocusOn !== e.target) {
       updateField(e.target)
@@ -231,7 +239,22 @@ async function main() {
       element.appendChild(field)
     })
 
+    const printButton = document.querySelector('[data-typst-label="dyno-print"]')
+    if (printButton) {
+      printButton.style.pointerEvents = "all"
+      printButton.addEventListener("click", print)
+    }
+
     document.querySelectorAll("a").forEach(a => a.setAttribute("target", "_top"))
+  }
+
+  async function print() {
+    const file = new File([(await compiler.pdf(mainFile)).pdf], "dyno.pdf")
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(file)
+    link.download = "dyno.pdf"
+    link.click()
+    link.remove()
   }
 
   async function recompile(onCompleted) {
@@ -256,24 +279,18 @@ async function main() {
       }
 
       if (err) {
-        console.warn(...err)
-      }
-
-      if (!svg) {
-        console.log("zero pages")
-        return
-      }
-
-      root.innerHTML = svg
-      const pageBg = root.querySelector("path").getAttribute("fill")
-      document.body.style.background = pageBg
-    } catch(e) {
-      console.log(e)
-      e.diagnostics.forEach((err) => {
         if (window.parent !== window) {
           window.parent.postMessage({err})
         }
-      })
+      }
+
+      if (svg) {
+        root.innerHTML = svg
+        const pageBg = root.querySelector("path").getAttribute("fill")
+        document.body.style.background = pageBg
+      }
+    } catch (e) {
+      console.error(e)
     }
 
     reinsert()

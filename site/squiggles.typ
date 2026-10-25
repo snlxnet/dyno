@@ -1,96 +1,98 @@
-#import "@preview/suiji:0.5.1": gen-rng, integers
+#let static-top = align(center, curve(
+ fill: rgb("#2e2d39"),
+ stroke: 0.85pt + rgb("#000000"),
+ curve.move((0% + 0pt, 0% + -8.5pt)),
+ curve.line((0% + 0pt, 0% + 0pt)),
+ curve.cubic(
+ auto,
+ (0% + 11.34pt, 0% + 17.01pt),
+ (0% + 87.87pt, 0% + 22.68pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 119.06pt, 0% + 14.17pt),
+ (0% + 192.76pt, 0% + 22.68pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 269.29pt, 0% + 25.51pt),
+ (0% + 325.98pt, 0% + 22.68pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 377.01pt, 0% + 17.01pt),
+ (0% + 413.86pt, 0% + 17.01pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 487.56pt, 0% + 28.35pt),
+ (0% + 549.92pt, 0% + 19.84pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 581.1pt, 0% + 17.01pt),
+ (0% + 671.81pt, 0% + 19.84pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 722.83pt, 0% + 34.02pt),
+ (0% + 765.35pt, 0% + 17.01pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 810.71pt, 0% + 34.02pt),
+ (0% + 793.7pt, 0% + 0pt),
+ ),
+ curve.line((0% + 793.7pt, 0% + 0pt)),
+ curve.line((0% + 793.7pt, 0% + -8.5pt)),
+)
+)
 
-#let wrap(fn) = context if target() == "html" {
-  html.div(
-    class: "squiggles",
-    html.frame(
-      box(
-        height: 10mm,
-        fn((width: 2000mm))
-      )
-    )
-  )
-} else {
-  layout(fn)
-}
-
-#let squiggles(
-  seed,
-  spikes: false,
-  amplitude: 8,
-  segment: 20,
-  down: 5,
-  up: 0,
-  fill: luma(90%),
-  stroke: none,
-) = wrap(size => {
-  let rng = gen-rng(seed)
-  let n = 0
-
-  let segments = calc.ceil(size.width / (2mm * segment)) + 2
-  let points = ()
-  let end = 1mm * (segments * segment * 2)
-
-  for i in range(segments * 2 + 1) {
-    (rng, n) = integers(rng, low: 0, high: segment)
-    let x = n * 1mm
-    (rng, n) = integers(rng, low: 0, high: amplitude)
-    let y = (down+n) * 1mm
-
-    points.push((segment*1mm*i+x, y))
-  }
-  points.push((end, 0mm))
-
-  align(
-    center,
-    curve(
-      fill: fill,
-      stroke: stroke,
-      curve.move((0mm, -up*1mm)),
-      curve.line((0mm, 0mm)),
-      ..points.chunks(2).map((chunk) => curve.cubic(auto, ..if spikes {(none, chunk.at(1))} else {chunk})),
-      curve.line((end, 0mm)),
-      curve.line((end, -up*1mm)),
-    ),
-  )
-})
-
-#set page(margin: 10mm, paper: "a6", flipped: true)
-#set box(outset: 3mm)
-#set text(font: "JetBrains Mono")
-
-#set page(fill: rgb("#eee"))
-#let fill = rgb("#fff")
-#set text(fill: rgb("#000"))
-#show strong: set text(fill: rgb("#6c7"))
-#box(fill: fill, width: 100%, outset: 10mm)[
-  Smooth / light, *bold*.
-]
-#squiggles(0, segment: 30, amplitude: 10, down: 3, fill: fill, stroke: 0.3mm + rgb("#aaa"))
-= Heading
-#set text(fill: rgb("#444"))
-Colors: custom.
-
-#set page(fill: rgb("#121212"))
-#let fill = rgb("#2e2d39")
-#set text(fill: rgb("#eee"))
-#show strong: set text(fill: rgb("#a8a5ff"))
-#box(fill: fill, width: 100%, outset: 10mm)[
-  Smooth / dark, *bold*.
-]
-#squiggles(1, segment: 20, amplitude: 6, fill: fill, stroke: 0.3mm + rgb("#556"), down: 8)
-= Heading
-#set text(fill: rgb("#ccc"))
-Colors: excalidraw.
-
-#set page(fill: rgb("#321"))
-#set text(fill: rgb("#eee"))
-#let fill = rgb("#543")
-#show strong: set text(fill: rgb("#cba"))
-#box(fill: fill, width: 100%, outset: 10mm)[
-  Spiky, *bold*.
-]
-#squiggles(2, spikes: true, segment: 7, fill: fill, stroke: 0.8mm + rgb("#111"), down: 5)
-= Heading
-#set text(fill: rgb("#ccc"))
-Colors: TBD
+#let static-bottom = curve(
+ fill: rgb("#2e2d39"),
+ stroke: 0.85pt + rgb("#000000"),
+ curve.move((0% + 0pt, 0% + 0pt)),
+ curve.line((0% + 0pt, 0% + 0pt)),
+ curve.cubic(
+ auto,
+ (0% + 8.5pt, 0% + -8.5pt),
+ (0% + 85.04pt, 0% + -28.35pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 124.72pt, 0% + -17.01pt),
+ (0% + 172.91pt, 0% + -17.01pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 243.78pt, 0% + -11.34pt),
+ (0% + 283.46pt, 0% + -22.68pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 354.33pt, 0% + -8.5pt),
+ (0% + 408.19pt, 0% + -28.35pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 467.72pt, 0% + -14.17pt),
+ (0% + 564.09pt, 0% + -19.84pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 617.95pt, 0% + -14.17pt),
+ (0% + 649.13pt, 0% + -19.84pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 734.17pt, 0% + -25.51pt),
+ (0% + 788.03pt, 0% + -14.17pt),
+ ),
+ curve.cubic(
+ auto,
+ (0% + 824.88pt, 0% + -11.34pt),
+ (0% + 793.7pt, 0% + 0pt),
+ ),
+ curve.line((0% + 793.7pt, 0% + 0pt)),
+ curve.line((0% + 793.7pt, 0% + 0pt)),
+)

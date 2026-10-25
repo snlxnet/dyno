@@ -13,6 +13,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: install typst
+        run: sudo snap install typst
       - name: check out repo code
         uses: actions/checkout@v5
       - name: setup pages
@@ -20,11 +22,12 @@ jobs:
       - name: build
         run: |
           ./deps.sh
-          mv src/* .
+          cp src/* .
           rm README.md flake.* deps.sh
           mv webdemo.html index.html
           mkdir api
-          echo '["DejaVu Sans Mono.ttf","Libertinus Serif.otf","New Computer Modern Math.otf","jetbrains mono.ttf"]' > api/fonts
+          echo '["noto emoji.ttf","jetbrains mono.ttf"]' > api/fonts
+          typst compile --format=html --features=html app.typ --font-path=.
       - name: upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

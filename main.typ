@@ -1,79 +1,163 @@
 #import "dyno.typ": *
-#import "colors.typ": *
 #import "site/main.typ": theme
-#import "@preview/yap:0.1.0": notes
+#import "site/colors.typ": screen
+#set raw(theme: "mocha.tmTheme")
+#let purple = rgb("#a8a5ff")
 
+#set document(
+  title: "dyno | snlx.net",
+  description: "A Typst runtime with inputs",
+)
+#set page(height: auto)
 #show: theme("/dyno", "/ru/dyno", "/card.svg", "dark", 0)
+#set text(size: 13pt)
 
-// Customize
-#context input-theme.update((default) => (
-    ..default,
-    inset: 0.6em,
-    baseline: 0mm,
-    radius: 0.3em,
+#let demo(a, b) = grid(
+  columns: (1fr, auto, 1fr),
+  gutter: 1em,
+  align: horizon,
+  a,
+  sym.arrow,
+  b,
+)
 
-    fill: silver,
-    fill-focused: silver,
-    fill-selected: silver,
+I love Typst's approachability ---
+it's the easiest language to explain to a non-programmer.
+It would be the perfect fit for simple apps
+that need to visualize things, but it's missing inputs.
+Dyno adds them:
 
-    stroke: black,
-    stroke-focused: purple,
-    stroke-selected: purple,
+#demo(
+  [
+  ```typst
+  #import "dyno.typ": input
 
-    text: white,
-    text-focused: purple,
-    text-selected: red,
-))
+  #let answer = 42
+  #input(answer)
 
-// Define variables
-#let a = 80
-#let b = 30
-#let options = "one"
-#let show-notes = true
+  Double is #(answer * 2)
+  ```
+  ],
+  box[
+    #let answer = 42
+    #input(answer)
 
-// Process
-#let count = if options == "one" {
-  1
-} else if options == "two" {
-  2
-} else if options == "way more" {
-  100
-}
+    Double of that is #(answer * 2)
+  ],
+)
 
-#let shape = if a == b [square] else [rectangle]
+#demo(
+  [
+  ```typst
+  #let flavor = "vanilla"
+  Your fav ice cream: #input(flavor)
 
-// Draw the UI
-Show notes: #input(show-notes)
+  You chose
+  #if flavor == "vanilla" [
+    #emoji.icecream.soft
+  ] else if flavor == "chocolate" [
+    #emoji.chocolate
+  ] else if flavor == "strawberry" [
+    #emoji.strawberry
+  ]
+  ```
+  ],
+  box[
+    #let flavor = "vanilla"
+    Your fav ice cream: #input(flavor)
 
-#if show-notes [
-  Notes:
-  + number inputs are auto-selected on focus, so you don't have to highlight a value to replace it
-  + red means it will be replaced by the number you press next
-  + try making it a square
-]
+    You chose
+    #if flavor == "vanilla" [
+      #emoji.icecream.soft
+    ] else if flavor == "chocolate" [
+      #emoji.chocolate
+    ] else if flavor == "strawberry" [
+      #emoji.strawberry
+    ]
+  ],
+)
 
-How many #(shape)s: #input(options)
+It also has swap buttons:
+#demo(
+  [
+  ```typst
+  #import "dyno.typ": input, swap
+  #let x = 30
+  #let y = 20
+  #input(x)
+  #swap(x, y)
+  #input(y)
+  #rect(width: x*1mm, height: y*1mm)
+  ```
+  ],
+  box[
+  #set rect(stroke: rgb("a8a5ff"))
+  #let x = 30
+  #let y = 20
+  #input(x)
+  #swap(x, y)
+  #input(y)
+  #rect(width: x*1mm, height: y*1mm, stroke: rgb("a8a5ff"))
+  ]
+)
 
-#input(a)
-#swap(a, b)
-#input(b)
+Warning: the engine breaks if you put 2 inputs on one source line
+like `#input(a) #input(b)`.
 
-$ #a times #b times count = #(a*b*count) "mm"^2 $
+And a print button:
+#demo(
+  [
+  ```typst
+  #box(inset: 0.6em, stroke: black)[
+    print
+  ]<dyno-print>
+  ```
+  ],
+  box[
+  #set box(inset: 0.6em, radius: 0.3em, fill: rgb("#2e2d39"), stroke: black)
+  #box[
+    print
+  ]<dyno-print>
+  ]
+)
 
-Vis:
+Dyno also allows accessing the network:
+#demo(
+  [
+  ```typst
+  5 random dinosaur species:
+  #json(
+    read(
+      "https://dinoipsum.com/api/?format=json&paragraphs=1&words=5",
+      encoding: none,
+    )
+  )
+  ```
+  ],
+  box[
+  5 random dinosaur species:
+  #json(
+    read(
+      "https://dinoipsum.com/api/?format=json&paragraphs=1&words=5",
+      encoding: none,
+    )
+  ).at(0)
+  ]
+)
 
-#for _ in range(count) {
-  box(width: a*1mm, height: b*1mm, stroke: 0.3mm + purple)
-  h(3mm)
-}
+#let button(it) = box(
+  stroke: screen.dark.border,
+  fill: screen.dark.header,
+  inset: 0.6em,
+  radius: 0.3em,
+  align(center, it),
+)
 
-Type to make it a presentation:
-#let slide-note = ""
-#input(slide-note)
-#if slide-note != "" [
-  #notes(eval(slide-note, mode: "markup"))
-]
+= Getting started
+Create a project folder on your computer // (#link("https://snlx.net/typ-intro")[how?])
+and go to #link("/app")[the web version of dyno], select it there.
 
-#link("/?root=second.typ")[another demo]
+Note that `#set page(fill: ...)` will change the background around the page too,
+but `#set page(background: ...)` won't.
 
-#v(20mm)
+You can self-host it after that by starting `node server.js` in the root of the project.
