@@ -110,6 +110,10 @@ function main() {
 }
 
 folder.addEventListener("click", async () => {
+  if (!window.FileSystemObserver) {
+    alert("Unsupported browser - please use Chrome / Edge / Yandex on a computer")
+  }
+
   dir = await window.showDirectoryPicker({ id: "dyno", mode: "readwrite" })
   engine.style.display = ""
   if (!ready) return
