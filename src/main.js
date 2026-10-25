@@ -279,7 +279,9 @@ async function main() {
       }
 
       if (err) {
-        console.warn(...err)
+        if (window.parent !== window) {
+          window.parent.postMessage({err})
+        }
       }
 
       if (svg) {
@@ -287,13 +289,8 @@ async function main() {
         const pageBg = root.querySelector("path").getAttribute("fill")
         document.body.style.background = pageBg
       }
-    } catch(e) {
-      console.log(e)
-      e.diagnostics.forEach((err) => {
-        if (window.parent !== window) {
-          window.parent.postMessage({err})
-        }
-      })
+    } catch (e) {
+      console.error(e)
     }
 
     reinsert()

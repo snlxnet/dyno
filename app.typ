@@ -42,6 +42,17 @@ iframe {
   border: none;
   box-sizing: border-box;
 }
+
+#diag:empty {
+  display: none;
+}
+#diag {
+  display: block;
+  position: absolute;
+  bottom: 1em;
+  left: 1em;
+  right: 1em;
+}
 ```.text)
 
 #html.button(
@@ -53,6 +64,7 @@ iframe {
   src: "/engine",
   style: "display: none",
 )
+#html.div(id: "diag")
 
 #html.script(```js
 let dir
@@ -112,8 +124,14 @@ window.addEventListener("message", ({data}) => {
     ready = true
     main()
   }
-  if (!err) return
-  console.error(`${err.line}:${err.column} ${err.message}\nHints: ${err.hints}`)
+  diag.innerHTML = ""
+  if (!err.length) return
+  err.map(err => {
+    const el = document.createElement("pre")
+    el.style.color = err.severe ? "#ff8383" : "#f9e2af"
+    el.textContent = `line ${err.line+1}: ${err.message}\n${err.hints}`
+    diag.appendChild(el)
+  })
 })
 
 async function readDir(dir, path = []) {
