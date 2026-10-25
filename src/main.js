@@ -36,8 +36,7 @@ async function main() {
   @param {string} name The name of the font, like in `#set text(font: "...")`
   @param {string} path The URL of the font file, ends in `.ttf` or `.otf`
   */
-  async function addFont(name, url) {
-    const data = new Uint8Array(await (await fetch(url, {cache: "force-cache"})).arrayBuffer())
+  async function addFont(name, data) {
     const font = new FontFace(name, data)
     await font.load()
     document.fonts.add(font)
@@ -87,7 +86,10 @@ async function main() {
     } else if (method === "render") {
       await render()
     } else if (method === "font") {
-      await addFont(data.name, data.url)
+      const bytes = data.bytes || new Uint8Array(await (await fetch(data.url, {cache: "force-cache"})).arrayBuffer())
+      await addFont(data.name, bytes)
+    } else if (method === "reset") {
+      compiler.reset()
     }
   }
 

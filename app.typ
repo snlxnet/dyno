@@ -49,19 +49,26 @@ iframe {
 #html.script(```js
 let dir
 let ready = false
+let timer = null
 
 function main() {
   if (!dir) return
 
-  readDir(dir).then(() => {
+  clearTimeout(timer)
+  timer = setTimeout(async () => {
+    engine.contentWindow.postMessage({method: "reset"})
+    await readDir(dir)
     engine.contentWindow.postMessage({method: "render"})
-  })
+  }, 200)
 }
 
 folder.addEventListener("click", async () => {
   dir = await window.showDirectoryPicker({ id: "dyno", mode: "readwrite" })
   engine.style.display = ""
-  if (ready) main()
+  if (!ready) return
+
+  new FileSystemObserver(main).observe(dir)
+  main()
 })
 window.addEventListener("message", ({data}) => {
   console.log("msg", data)
@@ -91,6 +98,14 @@ async function readFile(entry, path) {
   const bytes = new Uint8Array(await entry.getFile().then(f => f.arrayBuffer()))
   console.log({name, bytes, method})
   engine.contentWindow.postMessage({method, name, bytes})
+
+  if (name.endsWith(".ttf") || name.endsWith(".otf")) {
+    engine.contentWindow.postMessage({
+      method: "font",
+      name: entry.name.split(".")[0],
+      bytes,
+    })
+  }
 }
 ```.text)
 
