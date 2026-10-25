@@ -154,7 +154,7 @@ Dyno also allows accessing the network:
 )
 
 = Getting started
-Create a project folder on your computer (#link("https://snlx.net/typ-intro")[how?])
+Create a project folder on your computer // (#link("https://snlx.net/typ-intro")[how?])
 and go to #link("/app")[the web version of dyno], select it there.
 
 Note that `#set page(fill: ...)` will change the background around the page too,

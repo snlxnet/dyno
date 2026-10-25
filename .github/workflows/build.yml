@@ -20,7 +20,7 @@ jobs:
       - name: build
         run: |
           ./deps.sh
-          mv src/* .
+          cp src/* .
           rm README.md flake.* deps.sh
           mv webdemo.html index.html
           mkdir api

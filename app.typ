@@ -57,7 +57,31 @@ iframe {
 #html.script(```js
 let dir
 let ready = false
+let isEmpty = true
 let timer = null
+
+const DYNO = [
+  "dyno.typ",
+  "server.js",
+  "src/index.html",
+  "src/engine.html",
+  "src/yap.css",
+  "src/main.js",
+  "src/analyze.js",
+  "src/typst.js",
+  "src/queue.js",
+  "src/yap.js",
+  "src/card.svg",
+  "src/favicon.svg",
+  "src/npm/browser.js",
+  "src/npm/typ_js.js",
+  "src/npm/typ_js_bg.wasm",
+  "src/npm/engine/engine.core2.wasm",
+  "src/npm/engine/engine.core3.wasm",
+  "src/npm/engine/engine.core.wasm",
+  "src/tinymist/pkg/tinymist.js",
+  "src/tinymist/pkg/tinymist_bg.wasm",
+]
 
 function main() {
   if (!dir) return
@@ -66,6 +90,9 @@ function main() {
   timer = setTimeout(async () => {
     engine.contentWindow.postMessage({method: "reset"})
     await readDir(dir)
+    if (isEmpty) {
+      await downloadTemplate()
+    }
     engine.contentWindow.postMessage({method: "render"})
   }, 200)
 }
@@ -101,6 +128,10 @@ async function readDir(dir, path = []) {
 }
 
 async function readFile(entry, path) {
+  if (entry.name === "dyno.typ") {
+    isEmpty = false
+  }
+
   const name = "/" + [...path, entry.name].join("/")
   const method = name === "/main.typ" ? "setMain" : "write"
   const bytes = new Uint8Array(await entry.getFile().then(f => f.arrayBuffer()))
@@ -114,6 +145,31 @@ async function readFile(entry, path) {
       bytes,
     })
   }
+}
+
+async function downloadTemplate() {
+  const promises = DYNO.map(async (pathStr) => {
+    const path = pathStr.split("/")
+    let handle = dir
+    for (const seg of path.slice(0, -1)) {
+      handle = await handle.getDirectoryHandle(seg, { create: true })
+    }
+    handle = await handle.getFileHandle(path.at(-1), { create: true })
+    const wr = await handle.createWritable()
+    const res = await fetch("/" + pathStr)
+    await wr.write(await res.arrayBuffer())
+    await wr.close()
+  })
+
+  await Promise.all(promises)
+
+  const handle = await dir.getFileHandle("main.typ", { create: true })
+  const wr = await handle.createWritable()
+  const res = await fetch("/default.typ")
+  await wr.write(await res.arrayBuffer())
+  await wr.close()
+
+  return readDir(dir)
 }
 ```.text)
 
