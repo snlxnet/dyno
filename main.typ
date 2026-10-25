@@ -104,6 +104,23 @@ It also has swap buttons:
 Warning: the engine breaks if you put 2 inputs on one source line
 like `#input(a) #input(b)`.
 
+And a print button:
+#demo(
+  [
+  ```typst
+  #box(inset: 0.6em, stroke: black)[
+    print
+  ]<dyno-print>
+  ```
+  ],
+  box[
+  #set box(inset: 0.6em, radius: 0.3em, fill: rgb("#2e2d39"), stroke: black)
+  #box[
+    print
+  ]<dyno-print>
+  ]
+)
+
 Dyno also allows accessing the network:
 #demo(
   [
@@ -136,7 +153,11 @@ Dyno also allows accessing the network:
   align(center, it),
 )
 
+= Getting started
 Create a project folder on your computer (#link("https://snlx.net/typ-intro")[how?])
-and go to #link("/app")[the web version of dyno], select that project there.
+and go to #link("/app")[the web version of dyno], select it there.
+
+Note that `#set page(fill: ...)` will change the background around the page too,
+but `#set page(background: ...)` won't.
 
 You can self-host it after that by starting `node server.js` in the root of the project.

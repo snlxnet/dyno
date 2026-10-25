@@ -10,6 +10,14 @@
 = Web Compiler
 
 #html.style(```css
+@media print {
+  body * {
+    display: none;
+  }
+  body::before {
+    content: "Please check the downloaded file";
+  }
+}
 button {
   border: 0.1em solid #000;
   border-radius: 0.3em;

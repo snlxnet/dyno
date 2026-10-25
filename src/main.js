@@ -29,6 +29,11 @@ function getLabel(label) {
 
 async function main() {
   document.getElementById("loader-card").outerHTML = await (await fetch("/card.svg", {cache: "force-cache"})).text()
+  addEventListener("beforeprint", (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    print()
+  })
   setTimeout(() => document.getElementById("dino-card").style.opacity = 1)
   let text, map, fields, mainFile, compiler
   
@@ -234,7 +239,22 @@ async function main() {
       element.appendChild(field)
     })
 
+    const printButton = document.querySelector('[data-typst-label="dyno-print"]')
+    if (printButton) {
+      printButton.style.pointerEvents = "all"
+      printButton.addEventListener("click", print)
+    }
+
     document.querySelectorAll("a").forEach(a => a.setAttribute("target", "_top"))
+  }
+
+  async function print() {
+    const file = new File([(await compiler.pdf(mainFile)).pdf], "dyno.pdf")
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(file)
+    link.download = "dyno.pdf"
+    link.click()
+    link.remove()
   }
 
   async function recompile(onCompleted) {
