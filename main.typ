@@ -20,9 +20,10 @@
   sym.arrow,
   b,
 )
+#let warning(it) = text(fill: rgb("#f9e2af"), [> #emoji.warning #it])
 
 I love Typst's approachability ---
-it's the easiest language to explain to a non-programmer.
+it's the easiest language to explain to a non-programmer!
 It would be the perfect fit for simple apps
 that need to visualize things, but it's missing inputs.
 Dyno adds them:
@@ -101,8 +102,9 @@ It also has swap buttons:
   ]
 )
 
-Warning: the engine breaks if you put 2 inputs on one source line
-like `#input(a) #input(b)`.
+#warning[
+Don't put 2 inputs on one source line like: `#input(a) #input(b)`
+]
 
 And a print button:
 #demo(
@@ -154,10 +156,11 @@ Dyno also allows accessing the network:
 )
 
 = Getting started
-Create a project folder on your computer // (#link("https://snlx.net/typ-intro")[how?])
-and go to #link("/app")[the web version of dyno], select it there.
+Go to #link("/app")[the web version of dyno], click the only button and make a project folder.
+Open the same folder in an editor (#link("https://vscode.dev")[vscode, for example]),
+try typing something in `main.typ` and saving the file.
 
-Note that `#set page(fill: ...)` will change the background around the page too,
+Sidenote: `#set page(fill: ...)` will change the background around the page too,
 but `#set page(background: ...)` won't.
 
 You can self-host it after that by starting `node server.js` in the root of the project.
