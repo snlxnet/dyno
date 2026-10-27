@@ -58,7 +58,7 @@
   content-swap: eval(content-swp),
 ))
 
-#link("/?root=second.typ")[#sym.arrow.l Back]
+#link("/")[#sym.arrow.l Back]
 
 #columns[
 = Settings
