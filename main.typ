@@ -164,3 +164,8 @@ Sidenote: `#set page(fill: ...)` will change the background around the page too,
 but `#set page(background: ...)` won't.
 
 You can self-host it after that by starting `node server.js` in the root of the project.
+
+= Style settings
+
+See #link("https://dyno.snlx.net/?root=settings.typ")[the settings demo page]
+

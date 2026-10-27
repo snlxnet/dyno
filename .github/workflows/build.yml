@@ -24,7 +24,6 @@ jobs:
           ./deps.sh
           cp -r src/* .
           rm README.md flake.* deps.sh
-          mv webdemo.html index.html
           mkdir api
           echo '["noto emoji.ttf","jetbrains mono.ttf"]' > api/fonts
           typst compile --format=html --features=html app.typ --font-path=.

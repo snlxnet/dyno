@@ -68,3 +68,8 @@ Go to [the web version of dyno](https://dyno.snlx.net/app), click the only butto
 Sidenote: `#set page(fill: ...)` will change the background around the page too, but `#set page(background: ...)` won’t.
 
 You can self-host it after that by starting `node server.js` in the root of the project.
+
+## Style settings
+
+See [the settings demo page](https://dyno.snlx.net/?root=settings.typ)
+

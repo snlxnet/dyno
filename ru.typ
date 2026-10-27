@@ -166,3 +166,8 @@ Dyno умеет обращаться и к сети:
 а `#set page(background: ...)` --- нет.
 
 Чтобы селф-хостить, можно зайти в корень проекта и запустить `node server.js`.
+
+= Настройки стилей
+
+See #link("https://dyno.snlx.net/?root=settings.typ")[the settings demo page]
+
