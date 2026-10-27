@@ -1,75 +1,70 @@
 <img alt="dyno - dynamic output for typst" src="src/card.svg" style="width: 100%">
 
-[Live Demo](https://dyno.snlx.net) (under construction, here be ~~dragons~~ dinosaurs!)
+[Live Demo](https://dyno.snlx.net)
 
-dyno (pronounced /ˈdaɪnoʊ/, like dino)
-is a package that lets you create inputs
-and a webapp that makes them work.
-The documents are rendered in paged mode,
-so it looks like Typst's PDF export, not the HTML one.
+I love Typst’s approachability - it’s the easiest language to explain to a non-programmer! It would be the perfect fit for simple apps that need to visualize things, but it’s missing inputs. Dyno adds them:
 
-## Usage
+```typst
+#import "dyno.typ": input
 
-Create a project directory.
-Copy `src`, `server.js`, `dyno.typ` and `404.html` from here.
-Create `main.typ`.
-Run `node server.js` and [open the page in your browser](http://localhost:3000).
+#let answer = 42
+#input(answer)
 
-Import dyno in `main.typ` or another Typst file:
+Double is #(answer * 2)
+```
+
+```typst
+#let flavor = "vanilla"
+Your fav ice cream: #input(flavor)
+
+You chose
+#if flavor == "vanilla" [
+  #emoji.icecream.soft
+] else if flavor == "chocolate" [
+  #emoji.chocolate
+] else if flavor == "strawberry" [
+  #emoji.strawberry
+]
+```
+
+It also has swap buttons:
+
 ```typst
 #import "dyno.typ": input, swap
+#let x = 30
+#let y = 20
+#input(x)
+#swap(x, y)
+#input(y)
+#rect(width: x*1mm, height: y*1mm)
 ```
 
-Create a variable and an input:
+> ⚠️ Don’t put 2 inputs on one source line like: `#input(a) #input(b)`
+
+And a print button:
+
 ```typst
-#let lucky-number = 42
-#input(lucky-number)
+#box(inset: 0.6em, stroke: black)[
+  print
+]<dyno-print>
 ```
 
-Use it:
+Dyno also allows accessing the network:
+
 ```typst
-Your lucky number is #lucky-number // or something
+5 random dinosaur species:
+#json(
+  read(
+    "https://dinoipsum.com/api/?format=json&paragraphs=1&words=5",
+    encoding: none,
+  )
+)
 ```
 
-When the user enters something, variables are updated at the definition, so this will work too:
-```typst
-#let lucky-number = 42
-Your lucky number is #lucky-number
-#input(lucky-number)
-```
+## Getting started
 
-You can also create inputs conditionally:
-```typst
-#let a = 10
-#let enable-a = true
+Go to [the web version of dyno](https://dyno.snlx.net/app), click the only button and make a project folder. Open the same folder in an editor ([vscode, for example](https://vscode.dev)), try typing something in `main.typ` and saving the file.
 
-#input(enable-a)
-#if enable-a [
-  #input(a)
-]
-```
+Sidenote: `#set page(fill: ...)` will change the background around the page too, but `#set page(background: ...)` won’t.
 
-## Input types
-
-The input type is determined by the variable data type. There are:
-```typst
-#let number = 0
-#input(number)
-
-#let checkbox = false
-#input(checkbox)
-
-#let string = "hello" // supports multi-line
-#input(string)
-
-#let select = "one"
-#let as-maybe-number = if select == "one" {
-  1
-} else if select == "two" {
-  2
-} else if select == "many" [
-  many
-]
-#input(select)
-```
-
+You can self-host it after that by starting `node server.js` in the root of the project.
