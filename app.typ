@@ -71,6 +71,7 @@ let dir
 let ready = false
 let isEmpty = true
 let timer = null
+let main = "/main.typ"
 
 const DYNO = [
   "dyno.typ",
@@ -95,8 +96,9 @@ const DYNO = [
   "src/tinymist/pkg/tinymist_bg.wasm",
 ]
 
-function main() {
+function run() {
   if (!dir) return
+  console.log({main})
 
   clearTimeout(timer)
   timer = setTimeout(async () => {
@@ -111,22 +113,21 @@ function main() {
 
 folder.addEventListener("click", async () => {
   if (!window.FileSystemObserver) {
-    alert("Unsupported browser - please use Chrome / Edge / Yandex on a computer")
+    alert("Unsupported browser - please use current Chrome / Edge / Yandex on a computer")
   }
 
   dir = await window.showDirectoryPicker({ id: "dyno", mode: "readwrite" })
   engine.style.display = ""
   if (!ready) return
 
-  new FileSystemObserver(main).observe(dir)
-  main()
+  new FileSystemObserver(run).observe(dir)
+  run()
 })
 window.addEventListener("message", ({data}) => {
-  console.log("msg", data)
   const { err, status } = data
   if (status === "listening") {
     ready = true
-    main()
+    run()
   }
   diag.innerHTML = ""
   if (!err.length) return
@@ -136,6 +137,20 @@ window.addEventListener("message", ({data}) => {
     el.textContent = `line ${err.line+1}: ${err.message}\n${err.hints}`
     diag.appendChild(el)
   })
+})
+navigation.addEventListener("navigate", async (event) => {
+  const url = new URL(event.destination.url)
+  const filename = new URLSearchParams(url.search).get("root")
+  if (filename) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  if (filename.startsWith("/")) {
+    main = filename
+  } else {
+    main = "/" + filename
+  }
+  run()
 })
 
 async function readDir(dir, path = []) {
@@ -155,7 +170,8 @@ async function readFile(entry, path) {
   }
 
   const name = "/" + [...path, entry.name].join("/")
-  const method = name === "/main.typ" ? "setMain" : "write"
+  const method = name == main ? "setMain" : "write"
+  console.log({name, main, eq: name === main})
   const bytes = new Uint8Array(await entry.getFile().then(f => f.arrayBuffer()))
   console.log({name, bytes, method})
   engine.contentWindow.postMessage({method, name, bytes})
@@ -185,7 +201,7 @@ async function downloadTemplate() {
 
   await Promise.all(promises)
 
-  const handle = await dir.getFileHandle("main.typ", { create: true })
+  const handle = await dir.getFileHandle(main, { create: true })
   const wr = await handle.createWritable()
   const res = await fetch("/default.typ")
   await wr.write(await res.arrayBuffer())
