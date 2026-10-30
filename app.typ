@@ -171,9 +171,7 @@ async function readFile(entry, path) {
 
   const name = "/" + [...path, entry.name].join("/")
   const method = name == main ? "setMain" : "write"
-  console.log({name, main, eq: name === main})
   const bytes = new Uint8Array(await entry.getFile().then(f => f.arrayBuffer()))
-  console.log({name, bytes, method})
   engine.contentWindow.postMessage({method, name, bytes})
 
   if (name.endsWith(".ttf") || name.endsWith(".otf")) {
@@ -199,15 +197,13 @@ async function downloadTemplate() {
     await wr.close()
   })
 
-  await Promise.all(promises)
-
-  const handle = await dir.getFileHandle(main, { create: true })
+  const handle = await dir.getFileHandle(main.replace("/", ""), { create: true })
   const wr = await handle.createWritable()
   const res = await fetch("/default.typ")
   await wr.write(await res.arrayBuffer())
   await wr.close()
 
-  return readDir(dir)
+  await readDir(dir)
 }
 ```.text)
 
